@@ -53,7 +53,7 @@ body {
   color: white;
   overflow-x: hidden;
   position: relative;
-  cursor: none; /* Custom cursor */
+  /* Curseur par défaut restauré */
 }
 
 /* Optimisation performances - Désactive les animations infinies coûteuses */
@@ -100,76 +100,6 @@ body {
 .control-console,
 .era-explorer {
   backdrop-filter: blur(10px) !important; /* Réduit de 20-30px à 10px */
-}
-
-a, button, input, select, textarea, [role="button"] {
-  cursor: none !important;
-}
-
-/* ============================================
-   CURSEUR PERSONNALISÉ MAGNÉTIQUE
-   ============================================ */
-.custom-cursor {
-  position: fixed;
-  width: 40px;
-  height: 40px;
-  border: 3px solid var(--electric-blue);
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 99999;
-  will-change: transform; /* Optimisation GPU */
-  transition: width 0.3s var(--transition-smooth), 
-              height 0.3s var(--transition-smooth),
-              border-color 0.3s ease;
-  mix-blend-mode: difference;
-  opacity: 1;
-}
-
-.custom-cursor::before {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 8px;
-  height: 8px;
-  background: var(--electric-blue);
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  box-shadow: 0 0 20px var(--electric-blue);
-  animation: cursor-dot-pulse 2s ease-in-out infinite;
-  will-change: transform; /* Optimisation GPU */
-}
-
-.custom-cursor.hover {
-  width: 60px;
-  height: 60px;
-  border-color: var(--neon-pink);
-}
-
-.custom-cursor.hover::before {
-  background: var(--neon-pink);
-  box-shadow: 0 0 30px var(--neon-pink);
-  animation: cursor-dot-pulse-fast 1s ease-in-out infinite;
-}
-
-@keyframes cursor-dot-pulse {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.5);
-    opacity: 0.8;
-  }
-}
-
-@keyframes cursor-dot-pulse-fast {
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(2);
-  }
 }
 
 /* ============================================

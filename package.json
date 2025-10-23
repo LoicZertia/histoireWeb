@@ -1,0 +1,21 @@
+{
+  "name": "chronos-multiplayer-quiz",
+  "version": "2.0.0",
+  "description": "Système de quiz multi-joueurs temps réel type Kahoot pour Histoire du Web",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": ["quiz", "multiplayer", "socket.io", "kahoot", "education"],
+  "author": "LoicZertia",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.6.1",
+    "qrcode": "^1.5.3"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

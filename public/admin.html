@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHRONOS Quiz - Admin (Écran Projection)</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .admin-container {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .qr-section {
+      background: var(--glass-bg);
+      border: 5px solid var(--electric-blue);
+      padding: 3rem;
+      margin-bottom: 2rem;
+      text-align: center;
+      box-shadow: var(--brutal-shadow);
+    }
+
+    #qr-code {
+      background: white;
+      padding: 2rem;
+      display: inline-block;
+      border: 5px solid var(--void-black);
+      margin: 2rem 0;
+    }
+
+    .session-code {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      letter-spacing: 0.5em;
+      text-shadow: 0 0 30px var(--cyber-yellow);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .players-section {
+      background: var(--glass-bg);
+      border: 5px solid var(--neon-pink);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--brutal-shadow-pink);
+    }
+
+    .player-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .player-card {
+      background: var(--void-black);
+      border: 3px solid var(--electric-blue);
+      padding: 1rem;
+      text-align: center;
+      transform: rotate(-1deg);
+      transition: all 0.3s var(--transition-elastic);
+    }
+
+    .player-card:hover {
+      transform: rotate(1deg) scale(1.05);
+      border-color: var(--cyber-yellow);
+    }
+
+    .player-pseudo {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--electric-blue);
+      margin-bottom: 0.5rem;
+    }
+
+    .player-score {
+      font-size: 1.5rem;
+      color: var(--cyber-yellow);
+      font-weight: 900;
+    }
+
+    .question-display {
+      background: var(--void-black);
+      border: 8px solid var(--cyber-yellow);
+      padding: 3rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--brutal-shadow-yellow);
+      text-align: center;
+    }
+
+    .question-text {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: white;
+      margin-bottom: 2rem;
+      line-height: 1.4;
+    }
+
+    .options-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+      margin-top: 2rem;
+    }
+
+    .option-card {
+      background: var(--deep-purple);
+      border: 5px solid var(--electric-blue);
+      padding: 2rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: white;
+      position: relative;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    .option-card.correct {
+      border-color: var(--toxic-green);
+      background: rgba(0, 255, 102, 0.2);
+      animation: correct-pulse 0.6s ease;
+    }
+
+    .option-card.incorrect {
+      border-color: var(--neon-pink);
+      opacity: 0.5;
+    }
+
+    .option-stats {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: var(--cyber-yellow);
+      color: var(--void-black);
+      padding: 0.5rem 1rem;
+      border-radius: 0;
+      font-weight: 900;
+      font-size: 1.2rem;
+    }
+
+    .timer-display {
+      font-size: 6rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      text-align: center;
+      margin: 2rem 0;
+      font-family: 'JetBrains Mono', monospace;
+      text-shadow: 0 0 40px var(--electric-blue);
+    }
+
+    .timer-display.urgent {
+      color: var(--neon-pink);
+      animation: shake-brutal 0.3s infinite;
+    }
+
+    .leaderboard {
+      background: var(--glass-bg);
+      border: 5px solid var(--cosmic-purple);
+      padding: 2rem;
+    }
+
+    .leaderboard-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 2rem;
+      margin-bottom: 1rem;
+      background: var(--void-black);
+      border: 3px solid var(--electric-blue);
+      transform: skewX(-2deg);
+    }
+
+    .leaderboard-item:nth-child(1) {
+      border-color: var(--cyber-yellow);
+      transform: skewX(-2deg) scale(1.05);
+    }
+
+    .leaderboard-item:nth-child(2) {
+      border-color: var(--electric-blue);
+    }
+
+    .leaderboard-item:nth-child(3) {
+      border-color: var(--neon-pink);
+    }
+
+    .rank {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      min-width: 60px;
+    }
+
+    .btn-start {
+      background: var(--toxic-green);
+      color: var(--void-black);
+      border: 5px solid var(--void-black);
+      padding: 2rem 4rem;
+      font-size: 2rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: var(--brutal-shadow);
+      transition: all 0.3s var(--transition-elastic);
+      font-family: 'Space Grotesk', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .btn-start:hover {
+      transform: rotate(-2deg) scale(1.05);
+      box-shadow: 12px 12px 0px var(--toxic-green);
+    }
+
+    .btn-next {
+      background: var(--electric-blue);
+      color: var(--void-black);
+      border: 5px solid var(--void-black);
+      padding: 1.5rem 3rem;
+      font-size: 1.5rem;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: var(--brutal-shadow);
+      margin-top: 2rem;
+      font-family: 'Space Grotesk', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      transition: all 0.3s var(--transition-elastic);
+    }
+
+    .btn-next:hover {
+      transform: rotate(-2deg) scale(1.05);
+      box-shadow: 12px 12px 0px var(--electric-blue);
+      background: var(--cyber-yellow);
+    }
+
+    .btn-next:active {
+      transform: scale(0.95);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .stats-bar {
+      display: flex;
+      gap: 2rem;
+      justify-content: center;
+      margin: 2rem 0;
+    }
+
+    .stat-item {
+      background: var(--glass-bg);
+      border: 4px solid var(--electric-blue);
+      padding: 1.5rem 3rem;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .stat-label {
+      font-size: 1rem;
+      color: var(--electric-blue);
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      margin-top: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="admin-container">
+    <!-- Écran lobby -->
+    <div id="lobby-screen">
+      <div class="qr-section">
+        <h1 style="font-size: 4rem; color: var(--electric-blue); margin-bottom: 2rem;">
+          📱 SCANNEZ POUR JOUER
+        </h1>
+        <div id="qr-code">
+          <p style="color: #333;">Chargement du QR code...</p>
+        </div>
+        <div class="session-code" id="session-code">------</div>
+        <p style="font-size: 1.5rem; color: var(--neon-pink); margin-top: 1rem;">
+          Ou allez sur: <span id="join-url" style="color: var(--cyber-yellow);">...</span>
+        </p>
+      </div>
+
+      <div class="players-section">
+        <h2 style="font-size: 2.5rem; color: var(--neon-pink); margin-bottom: 1rem;">
+          👥 JOUEURS CONNECTÉS: <span id="player-count">0</span>
+        </h2>
+        <div class="player-list" id="player-list"></div>
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn-start" id="btn-start" onclick="startQuiz()">
+          🚀 DÉMARRER LE QUIZ
+        </button>
+      </div>
+    </div>
+
+    <!-- Écran question -->
+    <div id="question-screen" class="hidden">
+      <div class="stats-bar">
+        <div class="stat-item">
+          <div class="stat-value" id="current-question">1</div>
+          <div class="stat-label">Question</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="responses-count">0</div>
+          <div class="stat-label">Réponses</div>
+        </div>
+      </div>
+
+      <div class="timer-display" id="timer">20</div>
+
+      <div class="question-display">
+        <div style="color: var(--neon-pink); font-size: 1.2rem; margin-bottom: 1rem;">
+          <span id="question-era">Ère</span>
+        </div>
+        <div class="question-text" id="question-text">Question ici...</div>
+        
+        <div class="options-grid" id="options-grid">
+          <!-- Options injectées dynamiquement -->
+        </div>
+      </div>
+
+      <button class="btn-next hidden" id="btn-next" onclick="nextQuestion()">
+        ➡️ QUESTION SUIVANTE
+      </button>
+    </div>
+
+    <!-- Écran résultats question -->
+    <div id="results-screen" class="hidden">
+      <div class="leaderboard">
+        <h2 style="font-size: 3rem; color: var(--cyber-yellow); text-align: center; margin-bottom: 2rem;">
+          🏆 TOP 5
+        </h2>
+        <div id="leaderboard-list"></div>
+      </div>
+
+      <div style="text-align: center;">
+        <button class="btn-next" id="btn-next" onclick="nextQuestion()">
+          ➡️ QUESTION SUIVANTE
+        </button>
+      </div>
+    </div>
+
+    <!-- Écran final -->
+    <div id="final-screen" class="hidden">
+      <div style="text-align: center; padding: 4rem;">
+        <h1 style="font-size: 5rem; color: var(--cyber-yellow); margin-bottom: 3rem;">
+          🎉 QUIZ TERMINÉ !
+        </h1>
+        <div class="leaderboard">
+          <h2 style="font-size: 3rem; color: var(--electric-blue); margin-bottom: 2rem;">
+            🏆 CLASSEMENT FINAL
+          </h2>
+          <div id="final-leaderboard"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let currentState = 'lobby';
+
+    // Sons simples avec Web Audio API
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (type === 'start') {
+        // Son de démarrage
+        oscillator.frequency.value = 440;
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.5);
+      } else if (type === 'newQuestion') {
+        // Son nouvelle question
+        oscillator.frequency.value = 880;
+        gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else if (type === 'timeUp') {
+        // Son temps écoulé
+        oscillator.frequency.value = 220;
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.4);
+      }
+    }
+
+    // Charge QR code
+    fetch('/qrcode')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('qr-code').innerHTML = `<img src="${data.qrCode}" alt="QR Code">`;
+        document.getElementById('session-code').textContent = data.sessionCode;
+        document.getElementById('join-url').textContent = data.url;
+      });
+
+    // Mise à jour joueurs
+    socket.on('players-update', (data) => {
+      document.getElementById('player-count').textContent = data.count;
+      const playerList = document.getElementById('player-list');
+      playerList.innerHTML = data.players.map(p => `
+        <div class="player-card">
+          <div class="player-pseudo">${p.pseudo}</div>
+          <div class="player-score">${p.score} pts</div>
+        </div>
+      `).join('');
+    });
+
+    function startQuiz() {
+      socket.emit('start-quiz');
+      playSound('start');
+    }
+
+    socket.on('quiz-started', (data) => {
+      document.getElementById('lobby-screen').classList.add('hidden');
+      document.getElementById('question-screen').classList.remove('hidden');
+    });
+
+    socket.on('new-question', (data) => {
+      currentState = 'question';
+      playSound('newQuestion');
+      
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('question-screen').classList.remove('hidden');
+      document.getElementById('btn-next').classList.add('hidden');
+
+      document.getElementById('current-question').textContent = `${data.questionIndex + 1}/${data.totalQuestions}`;
+      document.getElementById('question-era').textContent = data.era;
+      document.getElementById('question-text').textContent = data.question;
+      document.getElementById('responses-count').textContent = '0';
+
+      const optionsGrid = document.getElementById('options-grid');
+      optionsGrid.innerHTML = data.options.map((opt, idx) => `
+        <div class="option-card" id="option-${idx}">
+          <span class="option-stats" id="stats-${idx}">0</span>
+          ${opt}
+        </div>
+      `).join('');
+    });
+
+    socket.on('timer-update', (data) => {
+      const timerEl = document.getElementById('timer');
+      timerEl.textContent = data.timeRemaining;
+      
+      if (data.timeRemaining <= 5) {
+        timerEl.classList.add('urgent');
+      } else {
+        timerEl.classList.remove('urgent');
+      }
+      
+      // Son à 3 secondes
+      if (data.timeRemaining === 3) {
+        playSound('timeUp');
+      }
+    });
+
+    socket.on('live-stats', (data) => {
+      document.getElementById('responses-count').textContent = `${data.totalResponses}/${data.totalPlayers}`;
+      
+      data.stats.forEach((stat, idx) => {
+        const statsEl = document.getElementById(`stats-${idx}`);
+        if (statsEl) {
+          statsEl.textContent = stat.count;
+        }
+      });
+    });
+
+    socket.on('question-results', (data) => {
+      // Affiche réponse correcte
+      data.stats.forEach((stat, idx) => {
+        const optionEl = document.getElementById(`option-${idx}`);
+        if (optionEl) {
+          if (stat.isCorrect) {
+            optionEl.classList.add('correct');
+          } else {
+            optionEl.classList.add('incorrect');
+          }
+        }
+      });
+
+      // Affiche leaderboard
+      setTimeout(() => {
+        document.getElementById('question-screen').classList.add('hidden');
+        document.getElementById('results-screen').classList.remove('hidden');
+        
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = data.leaderboard.map((player, idx) => `
+          <div class="leaderboard-item">
+            <div style="display: flex; align-items: center; gap: 2rem;">
+              <span class="rank">#${idx + 1}</span>
+              <span style="font-size: 1.8rem; font-weight: 700; color: white;">${player.pseudo}</span>
+            </div>
+            <span style="font-size: 2rem; font-weight: 900; color: var(--cyber-yellow);">${player.score} pts</span>
+          </div>
+        `).join('');
+
+        document.getElementById('btn-next').classList.remove('hidden');
+      }, 3000);
+    });
+
+    function nextQuestion() {
+      socket.emit('next-question');
+    }
+
+    socket.on('quiz-ended', (data) => {
+      document.getElementById('results-screen').classList.add('hidden');
+      document.getElementById('final-screen').classList.remove('hidden');
+
+      const finalLeaderboard = document.getElementById('final-leaderboard');
+      finalLeaderboard.innerHTML = data.leaderboard.map((player, idx) => `
+        <div class="leaderboard-item">
+          <div style="display: flex; align-items: center; gap: 2rem;">
+            <span class="rank">#${idx + 1}</span>
+            <span style="font-size: 2rem; font-weight: 700; color: white;">${player.pseudo}</span>
+            <span style="font-size: 1.2rem; color: var(--toxic-green);">${player.correctAnswers}/${data.totalQuestions} correct</span>
+          </div>
+          <span style="font-size: 2.5rem; font-weight: 900; color: var(--cyber-yellow);">${player.score} pts</span>
+        </div>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>CHRONOS Quiz - Joueur</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .player-container {
+      padding: 1rem;
+      max-width: 600px;
+      margin: 0 auto;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .join-screen {
+      text-align: center;
+    }
+
+    .join-title {
+      font-size: 3rem;
+      color: var(--electric-blue);
+      margin-bottom: 2rem;
+      text-shadow: 0 0 20px var(--electric-blue);
+    }
+
+    .input-pseudo {
+      width: 100%;
+      padding: 1.5rem;
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      background: var(--void-black);
+      color: var(--cyber-yellow);
+      border: 5px solid var(--electric-blue);
+      font-family: 'Space Grotesk', sans-serif;
+      margin-bottom: 2rem;
+      box-shadow: var(--brutal-shadow);
+    }
+
+    .input-pseudo::placeholder {
+      color: rgba(0, 240, 255, 0.5);
+    }
+
+    .btn-join {
+      width: 100%;
+      padding: 2rem;
+      font-size: 2rem;
+      font-weight: 900;
+      background: var(--toxic-green);
+      color: var(--void-black);
+      border: 5px solid var(--void-black);
+      cursor: pointer;
+      box-shadow: var(--brutal-shadow);
+      font-family: 'Space Grotesk', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+    }
+
+    .btn-join:active {
+      transform: scale(0.95);
+    }
+
+    .waiting-screen {
+      text-align: center;
+    }
+
+    .waiting-title {
+      font-size: 2rem;
+      color: var(--cyber-yellow);
+      margin-bottom: 2rem;
+    }
+
+    .player-pseudo-display {
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      margin-bottom: 3rem;
+      text-shadow: 0 0 30px var(--electric-blue);
+    }
+
+    .waiting-message {
+      font-size: 1.5rem;
+      color: var(--neon-pink);
+      animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    .answer-screen {
+      text-align: center;
+    }
+
+    .question-info {
+      background: var(--glass-bg);
+      border: 4px solid var(--electric-blue);
+      padding: 1rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .question-number {
+      font-size: 1.2rem;
+      color: var(--electric-blue);
+      font-weight: 700;
+    }
+
+    .timer-mobile {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .timer-mobile.urgent {
+      color: var(--neon-pink);
+      animation: shake-brutal 0.3s infinite;
+    }
+
+    .question-mobile {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 3rem;
+      line-height: 1.4;
+      min-height: 100px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .options-mobile {
+      display: grid;
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .option-btn {
+      padding: 2rem;
+      font-size: 1.3rem;
+      font-weight: 700;
+      background: var(--deep-purple);
+      color: white;
+      border: 5px solid var(--electric-blue);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-family: 'Space Grotesk', sans-serif;
+      text-align: center;
+      min-height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .option-btn:active {
+      transform: scale(0.95);
+    }
+
+    .option-btn.selected {
+      background: var(--electric-blue);
+      color: var(--void-black);
+      border-color: var(--cyber-yellow);
+      box-shadow: 0 0 30px var(--electric-blue);
+    }
+
+    .option-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .feedback-screen {
+      text-align: center;
+      animation: feedback-enter 0.4s var(--transition-elastic);
+    }
+
+    @keyframes feedback-enter {
+      from {
+        opacity: 0;
+        transform: scale(0.8);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    .feedback-icon {
+      font-size: 8rem;
+      margin-bottom: 2rem;
+    }
+
+    .feedback-message {
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 2rem;
+    }
+
+    .feedback-message.correct {
+      color: var(--toxic-green);
+      text-shadow: 0 0 30px var(--toxic-green);
+    }
+
+    .feedback-message.incorrect {
+      color: var(--neon-pink);
+      text-shadow: 0 0 30px var(--neon-pink);
+    }
+
+    .feedback-message.waiting {
+      color: var(--cyber-yellow);
+      text-shadow: 0 0 20px var(--cyber-yellow);
+      animation: pulse-icon 2s ease-in-out infinite;
+    }
+
+    .points-earned {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 1rem;
+    }
+
+    .score-display {
+      font-size: 1.5rem;
+      color: var(--electric-blue);
+    }
+
+    .correct-answer-display {
+      margin-top: 2rem;
+      padding: 1.5rem;
+      background: rgba(0, 255, 102, 0.1);
+      border: 3px solid var(--toxic-green);
+    }
+
+    .final-score-screen {
+      text-align: center;
+      animation: feedback-enter 0.6s var(--transition-elastic);
+    }
+
+    .final-score-title {
+      font-size: 2.5rem;
+      color: var(--cyber-yellow);
+      margin-bottom: 3rem;
+    }
+
+    .final-score-value {
+      font-size: 6rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      text-shadow: 0 0 40px var(--electric-blue);
+      margin-bottom: 2rem;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .error-message {
+      background: rgba(255, 0, 110, 0.2);
+      border: 3px solid var(--neon-pink);
+      padding: 1rem;
+      margin-bottom: 1rem;
+      color: var(--neon-pink);
+      font-weight: 700;
+    }
+
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="player-container">
+    <!-- Écran saisie pseudo -->
+    <div id="join-screen" class="join-screen">
+      <h1 class="join-title">🎮 CHRONOS QUIZ</h1>
+      <div id="error-container"></div>
+      <input 
+        type="text" 
+        id="pseudo-input" 
+        class="input-pseudo" 
+        placeholder="Votre pseudo..."
+        maxlength="20"
+        autocomplete="off"
+      >
+      <button class="btn-join" onclick="joinGame()">REJOINDRE</button>
+    </div>
+
+    <!-- Écran attente -->
+    <div id="waiting-screen" class="waiting-screen hidden">
+      <h2 class="waiting-title">✅ Connecté !</h2>
+      <div class="player-pseudo-display" id="player-pseudo">...</div>
+      <div class="waiting-message">
+        ⏳ En attente du démarrage du quiz...
+      </div>
+    </div>
+
+    <!-- Écran réponse -->
+    <div id="answer-screen" class="answer-screen hidden">
+      <div class="question-info">
+        <span class="question-number" id="question-number">Question 1/8</span>
+        <span class="timer-mobile" id="timer-mobile">20</span>
+      </div>
+
+      <div class="question-mobile" id="question-mobile">
+        Question ici...
+      </div>
+
+      <div class="options-mobile" id="options-mobile">
+        <!-- Options injectées dynamiquement -->
+      </div>
+    </div>
+
+    <!-- Écran feedback -->
+    <div id="feedback-screen" class="feedback-screen hidden">
+      <div class="feedback-icon" id="feedback-icon">✅</div>
+      <div class="feedback-message" id="feedback-message">Correct !</div>
+      <div class="points-earned" id="points-earned">+1000</div>
+      <div class="score-display">
+        Score total: <span id="score-display">0</span> pts
+      </div>
+      <div class="correct-answer-display hidden" id="correct-answer-display">
+        <strong>Réponse correcte:</strong><br>
+        <span id="correct-answer-text"></span>
+      </div>
+    </div>
+
+    <!-- Écran score final -->
+    <div id="final-score-screen" class="final-score-screen hidden">
+      <h1 class="final-score-title">🎉 Quiz Terminé !</h1>
+      <div class="final-score-value" id="final-score">0</div>
+      <div style="font-size: 1.5rem; color: var(--toxic-green);">
+        <span id="correct-count">0</span> réponses correctes
+      </div>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let myPseudo = '';
+    let myScore = 0;
+    let currentQuestionIndex = -1;
+    let selectedAnswer = null;
+    let hasAnswered = false;
+
+    // Sons simples avec Web Audio API (pas de fichiers externes)
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    function playSound(type) {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      if (type === 'correct') {
+        // Son de succès (arpège ascendant)
+        oscillator.frequency.value = 523.25; // Do
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.3);
+      } else if (type === 'incorrect') {
+        // Son d'erreur (descente)
+        oscillator.frequency.value = 200;
+        gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.2);
+      } else if (type === 'select') {
+        // Son de sélection (clic)
+        oscillator.frequency.value = 800;
+        gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+      }
+    }
+
+    function vibrate(pattern) {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+      }
+    }
+
+    // Entrée avec Enter
+    document.getElementById('pseudo-input').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        joinGame();
+      }
+    });
+
+    function joinGame() {
+      const pseudo = document.getElementById('pseudo-input').value.trim();
+      
+      if (!pseudo) {
+        showError('Veuillez entrer un pseudo');
+        return;
+      }
+
+      myPseudo = pseudo;
+      socket.emit('join-game', { pseudo });
+    }
+
+    socket.on('join-success', (data) => {
+      document.getElementById('join-screen').classList.add('hidden');
+      document.getElementById('waiting-screen').classList.remove('hidden');
+      document.getElementById('player-pseudo').textContent = data.pseudo;
+    });
+
+    socket.on('join-error', (data) => {
+      showError(data.message);
+    });
+
+    function showError(message) {
+      const errorContainer = document.getElementById('error-container');
+      errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+      setTimeout(() => {
+        errorContainer.innerHTML = '';
+      }, 3000);
+    }
+
+    socket.on('quiz-started', (data) => {
+      document.getElementById('waiting-screen').classList.add('hidden');
+      myScore = 0;
+    });
+
+    socket.on('new-question', (data) => {
+      hasAnswered = false;
+      selectedAnswer = null;
+      currentQuestionIndex = data.questionIndex;
+
+      document.getElementById('feedback-screen').classList.add('hidden');
+      document.getElementById('answer-screen').classList.remove('hidden');
+
+      document.getElementById('question-number').textContent = `Question ${data.questionIndex + 1}/${data.totalQuestions}`;
+      document.getElementById('question-mobile').textContent = data.question;
+
+      const optionsMobile = document.getElementById('options-mobile');
+      optionsMobile.innerHTML = data.options.map((opt, idx) => `
+        <button class="option-btn" onclick="selectAnswer(${idx})" id="option-${idx}">
+          ${opt}
+        </button>
+      `).join('');
+    });
+
+    socket.on('timer-update', (data) => {
+      const timerEl = document.getElementById('timer-mobile');
+      timerEl.textContent = data.timeRemaining;
+      
+      if (data.timeRemaining <= 5) {
+        timerEl.classList.add('urgent');
+      } else {
+        timerEl.classList.remove('urgent');
+      }
+    });
+
+    function selectAnswer(answerIndex) {
+      if (hasAnswered) return;
+
+      selectedAnswer = answerIndex;
+      hasAnswered = true;
+
+      // Son et vibration de sélection
+      playSound('select');
+      vibrate(50);
+
+      // Visual feedback
+      document.querySelectorAll('.option-btn').forEach(btn => {
+        btn.disabled = true;
+      });
+      document.getElementById(`option-${answerIndex}`).classList.add('selected');
+
+      const timerValue = parseInt(document.getElementById('timer-mobile').textContent);
+      
+      socket.emit('submit-answer', {
+        questionIndex: currentQuestionIndex,
+        answer: answerIndex,
+        timeRemaining: timerValue
+      });
+    }
+
+    socket.on('answer-submitted', (data) => {
+      // Affiche écran d'attente
+      setTimeout(() => {
+        document.getElementById('answer-screen').classList.add('hidden');
+        document.getElementById('feedback-screen').classList.remove('hidden');
+
+        // Message d'attente neutre
+        document.getElementById('feedback-icon').textContent = '⏳';
+        document.getElementById('feedback-message').textContent = 'Réponse enregistrée !';
+        document.getElementById('feedback-message').className = 'feedback-message waiting';
+        document.getElementById('points-earned').textContent = 'En attente des résultats...';
+        document.getElementById('correct-answer-display').classList.add('hidden');
+        document.getElementById('score-display').textContent = myScore;
+      }, 300);
+    });
+
+    socket.on('player-result', (data) => {
+      myScore = data.newScore;
+
+      if (data.isCorrect) {
+        // Feedback correct
+        playSound('correct');
+        vibrate([100, 50, 100]); // Vibration double
+        
+        document.getElementById('feedback-icon').textContent = '✅';
+        document.getElementById('feedback-message').textContent = 'Correct !';
+        document.getElementById('feedback-message').className = 'feedback-message correct';
+        document.getElementById('points-earned').textContent = `+${data.points}`;
+        document.getElementById('correct-answer-display').classList.add('hidden');
+      } else {
+        // Feedback incorrect
+        playSound('incorrect');
+        vibrate(200); // Vibration longue
+        
+        document.getElementById('feedback-icon').textContent = '❌';
+        document.getElementById('feedback-message').textContent = 'Incorrect';
+        document.getElementById('feedback-message').className = 'feedback-message incorrect';
+        document.getElementById('points-earned').textContent = '+0';
+        
+        // Affiche la bonne réponse
+        const correctAnswerDisplay = document.getElementById('correct-answer-display');
+        correctAnswerDisplay.classList.remove('hidden');
+        // Récupère le texte de la bonne réponse depuis les options
+        const correctOptionBtn = document.querySelectorAll('.option-btn')[data.correctAnswer];
+        if (correctOptionBtn) {
+          document.getElementById('correct-answer-text').textContent = correctOptionBtn.textContent;
+        }
+      }
+
+      document.getElementById('score-display').textContent = myScore;
+    });
+
+    socket.on('quiz-ended', (data) => {
+      document.getElementById('feedback-screen').classList.add('hidden');
+      document.getElementById('final-score-screen').classList.remove('hidden');
+
+      document.getElementById('final-score').textContent = myScore;
+      
+      const myStats = data.leaderboard.find(p => p.pseudo === myPseudo);
+      if (myStats) {
+        document.getElementById('correct-count').textContent = myStats.correctAnswers;
+      }
+    });
+  </script>
+</body>
+</html>
