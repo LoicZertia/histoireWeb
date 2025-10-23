@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Machine à Voyager dans le Temps - Histoire du Web</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Curseur personnalisé -->
+    <div class="custom-cursor"></div>
+    
+    <!-- Canvas pour effets de particules -->
+    <canvas id="particles-canvas"></canvas>
+    
+    <!-- HUD / Interface de jeu -->
+    <div class="game-hud">
+      <div class="hud-top">
+        <div class="energy-meter">
+          <div class="energy-label">⚡ ÉNERGIE TEMPORELLE</div>
+          <div class="energy-bar">
+            <div class="energy-fill" data-energy="100"></div>
+          </div>
+          <div class="energy-value">100%</div>
+        </div>
+        
+        <div class="score-display">
+          <div class="score-icon">🏆</div>
+          <div class="score-value" data-score="0">0</div>
+          <div class="score-label">POINTS</div>
+        </div>
+        
+        <div class="artifacts-counter">
+          <div class="artifacts-icon">💎</div>
+          <div class="artifacts-value" data-artifacts="0">0/12</div>
+          <div class="artifacts-label">ARTEFACTS</div>
+        </div>
+      </div>
+      
+      <div class="achievements-bar" data-achievements>
+        <div class="achievement-notification" data-notification style="display: none;">
+          <div class="achievement-icon">🎖️</div>
+          <div class="achievement-text"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Écran de démarrage -->
+    <div class="intro-screen" data-intro>
+      <div class="intro-content">
+        <div class="glitch-wrapper">
+          <h1 class="intro-title glitch" data-text="CHRONOS">CHRONOS</h1>
+        </div>
+        <p class="intro-subtitle">MACHINE À VOYAGER DANS LE TEMPS</p>
+        <div class="intro-description">
+          <p>Embarquez dans une aventure temporelle unique à travers l'histoire du Web.</p>
+          <p>Collectez des artefacts, résolvez des énigmes et devenez un expert de l'évolution d'Internet.</p>
+        </div>
+        <div class="intro-features">
+          <div class="feature-item">
+            <span class="feature-icon">🎮</span>
+            <span>Mini-jeux interactifs</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🧩</span>
+            <span>Puzzles chronologiques</span>
+          </div>
+          <div class="feature-item">
+            <span class="feature-icon">🏆</span>
+            <span>Système de progression</span>
+          </div>
+        </div>
+        <button class="intro-start-btn" data-start-journey>
+          <span class="btn-text">DÉMARRER LE VOYAGE</span>
+          <span class="btn-glow"></span>
+        </button>
+      </div>
+      <div class="intro-particles"></div>
+    </div>
+    <!-- Machine temporelle principale -->
+    <main class="time-machine" data-time-machine>
+      <!-- Console de contrôle centrale -->
+      <div class="control-console">
+        <div class="console-screen">
+          <div class="screen-scanlines"></div>
+          <div class="screen-content" data-console-screen>
+            <div class="terminal-text">
+              <p class="terminal-line">&gt; SYSTÈME INITIALISÉ</p>
+              <p class="terminal-line">&gt; DÉTECTEUR TEMPOREL: ACTIF</p>
+              <p class="terminal-line">&gt; SÉLECTIONNEZ UNE ÉPOQUE POUR COMMENCER</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="current-era-display" data-current-era>
+          <div class="era-year">AUCUNE ÉPOQUE SÉLECTIONNÉE</div>
+          <div class="era-name">Prêt à voyager</div>
+        </div>
+      </div>
+
+      <!-- Sélecteur d'époque circulaire -->
+      <div class="time-wheel-container">
+        <svg class="time-wheel" viewBox="0 0 400 400" data-time-wheel>
+          <defs>
+            <filter id="glow">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+              <feMerge>
+                <feMergeNode in="coloredBlur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+            <linearGradient id="gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#6ecfff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#4a9eff;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradient2" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#ff9565;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#ff6b35;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradient3" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#a080ff;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#7d5eff;stop-opacity:1" />
+            </linearGradient>
+            <linearGradient id="gradient4" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" style="stop-color:#58f9c6;stop-opacity:1" />
+              <stop offset="100%" style="stop-color:#2dd4bf;stop-opacity:1" />
+            </linearGradient>
+          </defs>
+          
+          <!-- Centre de la roue -->
+          <circle cx="200" cy="200" r="60" fill="url(#gradient1)" opacity="0.2" class="wheel-center">
+            <animate attributeName="r" values="60;65;60" dur="3s" repeatCount="indefinite"/>
+          </circle>
+          
+          <!-- Cercle extérieur -->
+          <circle cx="200" cy="200" r="180" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="2"/>
+          <circle cx="200" cy="200" r="140" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>
+          
+          <!-- Segments cliquables pour chaque époque -->
+          <g class="era-segment" data-era="0" data-locked="false">
+            <path d="M 200 200 L 200 20 A 180 180 0 0 1 380 200 Z" 
+                  fill="url(#gradient1)" opacity="0.3" class="segment-path"/>
+            <text x="290" y="110" text-anchor="middle" class="segment-label">1900-1945</text>
+            <text x="290" y="130" text-anchor="middle" class="segment-name">BUSH</text>
+          </g>
+          
+          <g class="era-segment" data-era="1" data-locked="true">
+            <path d="M 200 200 L 380 200 A 180 180 0 0 1 200 380 Z" 
+                  fill="url(#gradient2)" opacity="0.3" class="segment-path"/>
+            <text x="290" y="290" text-anchor="middle" class="segment-label">1958-1990</text>
+            <text x="290" y="310" text-anchor="middle" class="segment-name">TOMLINSON</text>
+            <text x="290" y="270" text-anchor="middle" class="lock-icon" font-size="24">🔒</text>
+          </g>
+          
+          <g class="era-segment" data-era="2" data-locked="true">
+            <path d="M 200 200 L 200 380 A 180 180 0 0 1 20 200 Z" 
+                  fill="url(#gradient3)" opacity="0.3" class="segment-path"/>
+            <text x="110" y="290" text-anchor="middle" class="segment-label">1990-2020</text>
+            <text x="110" y="310" text-anchor="middle" class="segment-name">BERNERS-LEE</text>
+            <text x="110" y="270" text-anchor="middle" class="lock-icon" font-size="24">🔒</text>
+          </g>
+          
+          <g class="era-segment" data-era="3" data-locked="true">
+            <path d="M 200 200 L 20 200 A 180 180 0 0 1 200 20 Z" 
+                  fill="url(#gradient4)" opacity="0.3" class="segment-path"/>
+            <text x="110" y="110" text-anchor="middle" class="segment-label">2020+</text>
+            <text x="110" y="130" text-anchor="middle" class="segment-name">WOOD</text>
+            <text x="110" y="90" text-anchor="middle" class="lock-icon" font-size="24">🔒</text>
+          </g>
+          
+          <!-- Aiguille centrale -->
+          <line x1="200" y1="200" x2="200" y2="80" stroke="#fff" stroke-width="3" 
+                class="time-needle" transform="rotate(0 200 200)">
+            <animateTransform attributeName="transform" type="rotate" 
+                            from="0 200 200" to="360 200 200" dur="20s" repeatCount="indefinite"/>
+          </line>
+          <circle cx="200" cy="200" r="10" fill="#fff" filter="url(#glow)"/>
+        </svg>
+        
+        <div class="wheel-hint">
+          <p>Cliquez sur une époque pour voyager</p>
+        </div>
+      </div>
+
+      <!-- Panneau d'exploration d'époque (modal interactif) -->
+      <div class="era-explorer" data-era-explorer style="display: none;">
+        <button class="explorer-close" data-close-explorer>✕</button>
+        
+        <div class="explorer-content">
+          <!-- En-tête de l'époque -->
+          <div class="explorer-header">
+            <div class="explorer-era-badge">
+              <span class="era-icon" data-era-icon>📻</span>
+              <div class="era-info">
+                <div class="era-period" data-era-period>1900 - 1945</div>
+                <h2 class="era-pioneer" data-era-pioneer>Vannevar Bush</h2>
+              </div>
+            </div>
+            
+            <div class="explorer-progress">
+              <div class="progress-label">Progression de l'époque</div>
+              <div class="progress-bar">
+                <div class="progress-fill" data-era-progress="0"></div>
+              </div>
+              <div class="progress-text" data-progress-text>0/4 complétés</div>
+            </div>
+          </div>
+
+          <!-- Contenu narratif -->
+          <div class="explorer-story">
+            <div class="story-content" data-story-content>
+              <p class="story-lead">Découvrez l'histoire fascinante de cette époque...</p>
+            </div>
+          </div>
+
+          <!-- Mini-jeux et défis -->
+          <div class="explorer-challenges">
+            <h3 class="challenges-title">🎮 Défis interactifs</h3>
+            
+            <!-- Défi 1: Quiz -->
+            <div class="challenge-card" data-challenge="quiz" data-challenge-id="0">
+              <div class="challenge-header">
+                <div class="challenge-icon">❓</div>
+                <div class="challenge-info">
+                  <h4>Quiz Historique</h4>
+                  <p>Testez vos connaissances</p>
+                </div>
+                <div class="challenge-status" data-status="available">
+                  <span class="status-icon">▶</span>
+                </div>
+              </div>
+              <div class="challenge-body" style="display: none;">
+                <div class="quiz-container" data-quiz></div>
+              </div>
+            </div>
+
+            <!-- Défi 2: Puzzle -->
+            <div class="challenge-card" data-challenge="puzzle" data-challenge-id="1">
+              <div class="challenge-header">
+                <div class="challenge-icon">🧩</div>
+                <div class="challenge-info">
+                  <h4>Puzzle Chronologique</h4>
+                  <p>Remettez les événements dans l'ordre</p>
+                </div>
+                <div class="challenge-status" data-status="locked">
+                  <span class="status-icon">🔒</span>
+                </div>
+              </div>
+              <div class="challenge-body" style="display: none;">
+                <div class="puzzle-container" data-puzzle></div>
+              </div>
+            </div>
+
+            <!-- Défi 3: Artefacts -->
+            <div class="challenge-card" data-challenge="artifacts" data-challenge-id="2">
+              <div class="challenge-header">
+                <div class="challenge-icon">💎</div>
+                <div class="challenge-info">
+                  <h4>Collection d'Artefacts</h4>
+                  <p>Trouvez les artefacts cachés</p>
+                </div>
+                <div class="challenge-status" data-status="locked">
+                  <span class="status-icon">🔒</span>
+                </div>
+              </div>
+              <div class="challenge-body" style="display: none;">
+                <div class="artifacts-hunt" data-artifacts-hunt></div>
+              </div>
+            </div>
+
+            <!-- Défi 4: Connexions -->
+            <div class="challenge-card" data-challenge="connect" data-challenge-id="3">
+              <div class="challenge-header">
+                <div class="challenge-icon">🔗</div>
+                <div class="challenge-info">
+                  <h4>Connexions Historiques</h4>
+                  <p>Reliez les concepts aux définitions</p>
+                </div>
+                <div class="challenge-status" data-status="locked">
+                  <span class="status-icon">🔒</span>
+                </div>
+              </div>
+              <div class="challenge-body" style="display: none;">
+                <div class="connect-game" data-connect-game></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="explorer-footer">
+            <button class="btn-secondary" data-close-explorer>Quitter l'époque</button>
+            <button class="btn-primary" data-complete-era style="display: none;">
+              Compléter l'époque (100 pts) ✨
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <p>
+        Projet étudiant — Machine à voyager dans le temps • Histoire du Web
+      </p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
