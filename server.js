@@ -15,7 +15,7 @@ const PORT = process.env.PORT || 3000;
 function getBaseURL() {
   if (process.env.NODE_ENV === 'production' || process.env.HEROKU_APP_NAME) {
     // En production sur Heroku
-    return `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`;
+    return `https://chronos-quiz-histoire-70ad94ba5349.herokuapp.com`;
   } else {
     // En local
     const interfaces = os.networkInterfaces();
