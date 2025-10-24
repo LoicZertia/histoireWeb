@@ -11,21 +11,26 @@ const io = socketIO(server);
 
 const PORT = process.env.PORT || 3000;
 
-// Fonction pour obtenir l'IP locale
-function getLocalIP() {
-  const interfaces = os.networkInterfaces();
-  for (const name of Object.keys(interfaces)) {
-    for (const iface of interfaces[name]) {
-      // Skip internal (loopback) and non-IPv4 addresses
-      if (iface.family === 'IPv4' && !iface.internal) {
-        return iface.address;
+// Fonction pour obtenir l'URL de base (local ou Heroku)
+function getBaseURL() {
+  if (process.env.NODE_ENV === 'production' || process.env.HEROKU_APP_NAME) {
+    // En production sur Heroku
+    return `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`;
+  } else {
+    // En local
+    const interfaces = os.networkInterfaces();
+    for (const name of Object.keys(interfaces)) {
+      for (const iface of interfaces[name]) {
+        if (iface.family === 'IPv4' && !iface.internal) {
+          return `http://${iface.address}:${PORT}`;
+        }
       }
     }
+    return `http://localhost:${PORT}`;
   }
-  return 'localhost';
 }
 
-const LOCAL_IP = getLocalIP();
+const BASE_URL = getBaseURL();
 
 // Servir les fichiers statiques
 app.use(express.static('public'));
@@ -124,8 +129,8 @@ app.get('/play', (req, res) => {
 
 app.get('/qrcode', async (req, res) => {
   try {
-    // Utilise l'IP locale au lieu de localhost
-    const url = `http://${LOCAL_IP}:${PORT}/play`;
+    // Utilise l'URL de base (local ou Heroku)
+    const url = `${BASE_URL}/play`;
     const qrCodeDataURL = await QRCode.toDataURL(url, {
       width: 300,
       margin: 2,
@@ -414,11 +419,11 @@ server.listen(PORT, () => {
 ║   CHRONOS Multi-Player Quiz Server         ║
 ║                                            ║
 ║   🚀 Server running on port ${PORT}         ║
-║   📱 Admin: http://${LOCAL_IP}:${PORT}        
-║   🎮 Players: http://${LOCAL_IP}:${PORT}/play 
+║   📱 Admin: ${BASE_URL}
+║   🎮 Players: ${BASE_URL}/play
 ║                                            ║
 ║   Session Code: ${gameState.sessionCode}              ║
-║   🌐 IP Locale: ${LOCAL_IP}                 
+║   🌐 Environment: ${process.env.NODE_ENV || 'development'}
 ╚════════════════════════════════════════════╝
   `);
 });
