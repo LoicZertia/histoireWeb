@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHRONOS - Histoire du Web Interactive</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #0D0221, #1a1a2e);
+      font-family: 'Space Grotesk', sans-serif;
+      color: white;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .main-container {
+      text-align: center;
+      max-width: 800px;
+      padding: 3rem;
+    }
+
+    .title {
+      font-size: 5rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      text-shadow: 0 0 50px var(--electric-blue);
+      margin-bottom: 2rem;
+      animation: pulse-glow 3s ease-in-out infinite alternate;
+    }
+
+    @keyframes pulse-glow {
+      from { text-shadow: 0 0 50px var(--electric-blue); }
+      to { text-shadow: 0 0 80px var(--electric-blue), 0 0 120px var(--electric-blue); }
+    }
+
+    .subtitle {
+      font-size: 2rem;
+      color: var(--cyber-yellow);
+      margin-bottom: 3rem;
+      font-weight: 700;
+    }
+
+    .description {
+      font-size: 1.3rem;
+      color: white;
+      margin-bottom: 4rem;
+      line-height: 1.6;
+      opacity: 0.9;
+    }
+
+    .start-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      margin-bottom: 4rem;
+    }
+
+    .option-card {
+      background: var(--glass-bg);
+      border: 4px solid var(--electric-blue);
+      border-radius: 15px;
+      padding: 3rem 2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-card:hover {
+      border-color: var(--cyber-yellow);
+      box-shadow: 0 0 40px var(--cyber-yellow);
+      transform: translateY(-5px);
+    }
+
+    .option-card h3 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      margin-bottom: 1rem;
+    }
+
+    .option-card:hover h3 {
+      color: var(--cyber-yellow);
+    }
+
+    .option-card p {
+      font-size: 1.1rem;
+      color: white;
+      opacity: 0.8;
+      margin-bottom: 2rem;
+    }
+
+    .option-button {
+      background: var(--electric-blue);
+      color: var(--void-black);
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+    }
+
+    .option-card:hover .option-button {
+      background: var(--cyber-yellow);
+    }
+
+    .qr-section {
+      background: rgba(0, 240, 255, 0.1);
+      border: 3px solid var(--electric-blue);
+      border-radius: 10px;
+      padding: 2rem;
+      margin-top: 3rem;
+    }
+
+    .qr-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--electric-blue);
+      margin-bottom: 1rem;
+    }
+
+    .qr-code {
+      margin: 1rem 0;
+    }
+
+    .session-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 3rem;
+      padding: 1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+    }
+
+    .session-code {
+      font-size: 1.5rem;
+      font-weight: 900;
+      color: var(--cyber-yellow);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .players-count {
+      font-size: 1.2rem;
+      color: var(--electric-blue);
+      font-weight: 700;
+    }
+
+    .progress-indicator {
+      position: fixed;
+      top: 2rem;
+      right: 2rem;
+      background: rgba(0, 0, 0, 0.8);
+      padding: 1rem;
+      border-radius: 10px;
+      border: 2px solid var(--electric-blue);
+    }
+
+    .progress-title {
+      font-size: 1rem;
+      color: var(--electric-blue);
+      margin-bottom: 0.5rem;
+      font-weight: 700;
+    }
+
+    .progress-dots {
+      display: flex;
+      gap: 0.5rem;
+    }
+
+    .progress-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid var(--electric-blue);
+    }
+
+    .progress-dot.completed {
+      background: var(--toxic-green);
+      border-color: var(--toxic-green);
+      box-shadow: 0 0 8px var(--toxic-green);
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .start-options {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+      
+      .title {
+        font-size: 3rem;
+      }
+      
+      .subtitle {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <h1 class="title">CHRONOS</h1>
+    <p class="subtitle">Histoire du Web Interactive</p>
+    <p class="description">
+      Découvrez l'évolution du Web à travers une expérience immersive en 3D. 
+      Explorez notre planète interactive et apprenez l'histoire des pionniers qui ont façonné Internet.
+    </p>
+
+    <div class="start-options">
+      <div class="option-card" onclick="startPlanetMode()">
+        <h3>🌍 Mode Planète</h3>
+        <p>Explorez la Terre en 3D et cliquez sur les inventeurs pour découvrir leur histoire via des vidéos et des quiz personnalisés.</p>
+        <button class="option-button">Explorer la Planète</button>
+      </div>
+
+      <div class="option-card" onclick="startClassicQuiz()">
+        <h3>🎯 Quiz Classique</h3>
+        <p>Démarrez directement le quiz Kahoot avec toutes les questions sur l'histoire du Web.</p>
+        <button class="option-button">Quiz Complet</button>
+      </div>
+    </div>
+
+    <div class="qr-section">
+      <div class="qr-title">📱 Connexion des Joueurs</div>
+      <div class="qr-code" id="qr-container">
+        <div style="text-align: center; padding: 2rem;">
+          <div style="color: var(--cyber-yellow);">Chargement du QR code...</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="session-info">
+      <div>
+        <span style="color: var(--electric-blue);">Code Session :</span>
+        <span class="session-code" id="session-code">------</span>
+      </div>
+      <div class="players-count" id="players-count">👥 0 joueurs connectés</div>
+    </div>
+  </div>
+
+  <!-- Indicateur de progression (pour le mode planète) -->
+  <div class="progress-indicator hidden" id="progress-indicator">
+    <div class="progress-title">Inventeurs complétés</div>
+    <div class="progress-dots">
+      <div class="progress-dot" data-inventor="bush" title="Vannevar Bush"></div>
+      <div class="progress-dot" data-inventor="tomlinson" title="Ray Tomlinson"></div>
+      <div class="progress-dot" data-inventor="berners-lee" title="Tim Berners-Lee"></div>
+      <div class="progress-dot" data-inventor="wood" title="Gavin Wood"></div>
+    </div>
+  </div>
+
+  <!-- Socket.IO -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    let gameMode = null;
+
+    // Initialisation
+    document.addEventListener('DOMContentLoaded', () => {
+      loadQRCode();
+      
+      // Écouter les mises à jour des joueurs
+      socket.on('players-update', (data) => {
+        document.getElementById('players-count').textContent = `👥 ${data.count} joueurs connectés`;
+      });
+
+      // Recevoir les informations de session
+      socket.on('connect', () => {
+        console.log('Connecté au serveur');
+      });
+    });
+
+    // Charger le QR code
+    async function loadQRCode() {
+      try {
+        const response = await fetch('/qrcode');
+        const data = await response.json();
+        
+        document.getElementById('session-code').textContent = data.sessionCode;
+        
+        const qrContainer = document.getElementById('qr-container');
+        qrContainer.innerHTML = `
+          <img src="${data.qrCode}" alt="QR Code" style="max-width: 200px; border-radius: 10px;">
+          <div style="margin-top: 1rem; color: var(--cyber-yellow); font-weight: 700;">
+            Scannez pour rejoindre
+          </div>
+          <div style="color: white; font-size: 0.9rem; margin-top: 0.5rem;">
+            ${data.url}
+          </div>
+        `;
+      } catch (error) {
+        console.error('Erreur lors du chargement du QR code:', error);
+        document.getElementById('qr-container').innerHTML = `
+          <div style="color: var(--neon-pink);">Erreur de connexion</div>
+        `;
+      }
+    }
+
+    // Démarrer le mode planète
+    function startPlanetMode() {
+      gameMode = 'planet';
+      
+      // Attendre que des joueurs se connectent
+      if (confirm('Mode Planète sélectionné !\n\nAttendez que vos joueurs scannent le QR code, puis cliquez sur OK pour commencer l\'exploration de la planète.')) {
+        // Rediriger vers la planète
+        window.location.href = '/planet';
+      }
+    }
+
+    // Démarrer le quiz classique
+    function startClassicQuiz() {
+      gameMode = 'classic';
+      
+      if (confirm('Quiz Classique sélectionné !\n\nAttendez que vos joueurs scannent le QR code, puis cliquez sur OK pour commencer le quiz complet.')) {
+        // Démarrer le quiz classique
+        socket.emit('start-quiz');
+        
+        // Afficher l'interface admin du quiz
+        showQuizInterface();
+      }
+    }
+
+    // Afficher l'interface du quiz
+    function showQuizInterface() {
+      // Rediriger vers l'admin du quiz
+      window.location.href = '/admin.html';
+    }
+
+    // Écouter les événements du quiz
+    socket.on('quiz-started', (data) => {
+      console.log('Quiz démarré:', data);
+    });
+
+    socket.on('inventor-completed', (data) => {
+      // Marquer l'inventeur comme terminé dans l'indicateur
+      const dot = document.querySelector(`[data-inventor="${data.inventorId}"]`);
+      if (dot) {
+        dot.classList.add('completed');
+      }
+      
+      // Afficher l'indicateur de progression en mode planète
+      if (gameMode === 'planet') {
+        document.getElementById('progress-indicator').classList.remove('hidden');
+      }
+    });
+
+    // Gestion des erreurs de connexion
+    socket.on('connect_error', (error) => {
+      console.error('Erreur de connexion:', error);
+      document.getElementById('qr-container').innerHTML = `
+        <div style="color: var(--neon-pink);">
+          ❌ Erreur de connexion au serveur
+        </div>
+      `;
+    });
+
+    socket.on('disconnect', () => {
+      console.log('Déconnecté du serveur');
+      document.getElementById('players-count').textContent = '👥 Déconnecté';
+    });
+  </script>
+</body>
+</html>

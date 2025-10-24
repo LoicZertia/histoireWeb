@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Notre Planète en 3D</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: black;
+    }
+    canvas {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <!-- Librairie Three.js -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+  <!-- Contrôles interactifs -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // === Scène, caméra et rendu ===
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    // === Lumière ===
+    const light = new THREE.PointLight(0xffffff, 1.2);
+    light.position.set(5, 3, 5);
+    scene.add(light);
+
+    // === Texture de la Terre ===
+    const loader = new THREE.TextureLoader();
+    const earthTexture = loader.load('https://threejs.org/examples/textures/earth_atmos_2048.jpg');
+    const bumpMap = loader.load('https://threejs.org/examples/textures/earthbump1k.jpg');
+    const specMap = loader.load('https://threejs.org/examples/textures/earthspec1k.jpg');
+
+    const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
+    const earthMaterial = new THREE.MeshPhongMaterial({
+      map: earthTexture,
+      bumpMap: bumpMap,
+      bumpScale: 0.05,
+      specularMap: specMap,
+      specular: new THREE.Color('grey')
+    });
+    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+    scene.add(earth);
+
+    // === Nuages ===
+    const cloudTexture = loader.load('https://threejs.org/examples/textures/earthcloudmaptrans.jpg');
+    const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
+    const cloudMaterial = new THREE.MeshPhongMaterial({
+      map: cloudTexture,
+      transparent: true
+    });
+    const clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+    scene.add(clouds);
+
+    // === Fond d’étoiles ===
+    const starTexture = loader.load('https://threejs.org/examples/textures/galaxy_starfield.png');
+    const starGeometry = new THREE.SphereGeometry(90, 64, 64);
+    const starMaterial = new THREE.MeshBasicMaterial({
+      map: starTexture,
+      side: THREE.BackSide
+    });
+    const stars = new THREE.Mesh(starGeometry, starMaterial);
+    scene.add(stars);
+
+    // === Caméra ===
+    camera.position.z = 2.5;
+
+    // === Contrôles (rotation à la souris) ===
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.rotateSpeed = 0.4;
+
+    // === Animation ===
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotation lente
+      earth.rotation.y += 0.0015;
+      clouds.rotation.y += 0.0018;
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    // === Responsive ===
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+  </script>
+</body>
+</html>

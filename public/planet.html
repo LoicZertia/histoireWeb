@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CHRONOS - Planète Histoire du Web</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: linear-gradient(135deg, #0D0221, #1a1a2e);
+      font-family: 'Space Grotesk', sans-serif;
+      color: white;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .ui-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    .title {
+      position: absolute;
+      top: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      text-shadow: 0 0 30px var(--electric-blue);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .instructions {
+      position: absolute;
+      bottom: 3rem;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+      font-size: 1.2rem;
+      color: var(--cyber-yellow);
+      pointer-events: none;
+    }
+
+    .inventor-marker {
+      position: absolute;
+      background: rgba(0, 240, 255, 0.9);
+      color: var(--void-black);
+      padding: 0.8rem 1.5rem;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      pointer-events: auto;
+      border: 3px solid var(--electric-blue);
+      box-shadow: 0 0 20px var(--electric-blue);
+      transition: all 0.3s ease;
+      z-index: 200;
+    }
+
+    .inventor-marker:hover {
+      background: var(--cyber-yellow);
+      border-color: var(--cyber-yellow);
+      box-shadow: 0 0 30px var(--cyber-yellow);
+      transform: scale(1.1);
+    }
+
+    .inventor-marker.completed {
+      background: var(--toxic-green);
+      border-color: var(--toxic-green);
+      box-shadow: 0 0 20px var(--toxic-green);
+    }
+
+    .video-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.95);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      pointer-events: auto;
+    }
+
+    .video-container {
+      position: relative;
+      max-width: 80%;
+      max-height: 80%;
+    }
+
+    .video-container video {
+      width: 100%;
+      height: auto;
+      border: 5px solid var(--electric-blue);
+      box-shadow: 0 0 50px var(--electric-blue);
+    }
+
+    .close-video {
+      position: absolute;
+      top: -50px;
+      right: 0;
+      background: var(--neon-pink);
+      color: white;
+      border: none;
+      padding: 1rem 2rem;
+      font-size: 1.2rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 5px;
+    }
+
+    .start-quiz-btn {
+      position: absolute;
+      bottom: -80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--cyber-yellow);
+      color: var(--void-black);
+      border: none;
+      padding: 1.5rem 3rem;
+      font-size: 1.5rem;
+      font-weight: 900;
+      cursor: pointer;
+      border-radius: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      box-shadow: var(--brutal-shadow);
+    }
+
+    .chronological-mode {
+      position: absolute;
+      top: 3rem;
+      right: 3rem;
+      pointer-events: auto;
+    }
+
+    .chrono-btn {
+      background: var(--deep-purple);
+      color: var(--electric-blue);
+      border: 3px solid var(--electric-blue);
+      padding: 1rem 2rem;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      border-radius: 5px;
+      margin-bottom: 1rem;
+      display: block;
+      width: 100%;
+      transition: all 0.3s ease;
+    }
+
+    .chrono-btn:hover {
+      background: var(--electric-blue);
+      color: var(--void-black);
+    }
+
+    .progress-bar {
+      position: absolute;
+      bottom: 6rem;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 1rem;
+      pointer-events: none;
+    }
+
+    .progress-dot {
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.3);
+      border: 2px solid var(--electric-blue);
+    }
+
+    .progress-dot.completed {
+      background: var(--toxic-green);
+      border-color: var(--toxic-green);
+      box-shadow: 0 0 10px var(--toxic-green);
+    }
+
+    .loading-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #0D0221, #1a1a2e);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+
+    .loading-title {
+      font-size: 4rem;
+      font-weight: 900;
+      color: var(--electric-blue);
+      text-shadow: 0 0 50px var(--electric-blue);
+      margin-bottom: 2rem;
+    }
+
+    .loading-subtitle {
+      font-size: 1.5rem;
+      color: var(--cyber-yellow);
+      text-align: center;
+      margin-bottom: 3rem;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 5px solid rgba(0, 240, 255, 0.3);
+      border-top: 5px solid var(--electric-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+  <!-- Écran de chargement -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-title">CHRONOS</div>
+    <div class="loading-subtitle">Chargement de la planète Histoire du Web...</div>
+    <div class="spinner"></div>
+  </div>
+
+  <!-- Interface utilisateur -->
+  <div class="ui-overlay">
+    <div class="title">Histoire du Web Interactive</div>
+    
+    <div class="chronological-mode">
+      <button class="chrono-btn" onclick="startChronologicalMode()">Mode Chronologique</button>
+      <button class="chrono-btn" onclick="resetPlanet()">Réinitialiser</button>
+    </div>
+
+    <div class="instructions">
+      Cliquez sur un inventeur pour découvrir son histoire
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-dot" data-inventor="bush"></div>
+      <div class="progress-dot" data-inventor="tomlinson"></div>
+      <div class="progress-dot" data-inventor="berners-lee"></div>
+      <div class="progress-dot" data-inventor="wood"></div>
+    </div>
+  </div>
+
+  <!-- Marqueurs des inventeurs (positionnés dynamiquement) -->
+  <div id="bush-marker" class="inventor-marker" onclick="selectInventor('bush')">
+    Vannevar Bush<br><small>1945 - Memex</small>
+  </div>
+  <div id="tomlinson-marker" class="inventor-marker" onclick="selectInventor('tomlinson')">
+    Ray Tomlinson<br><small>1971 - Email</small>
+  </div>
+  <div id="berners-lee-marker" class="inventor-marker" onclick="selectInventor('berners-lee')">
+    Tim Berners-Lee<br><small>1989 - World Wide Web</small>
+  </div>
+  <div id="wood-marker" class="inventor-marker" onclick="selectInventor('wood')">
+    Gavin Wood<br><small>2014 - Ethereum</small>
+  </div>
+
+  <!-- Modal vidéo -->
+  <div id="video-modal" class="video-modal">
+    <div class="video-container">
+      <button class="close-video" onclick="closeVideo()">✕ Fermer</button>
+      <video id="inventor-video" controls>
+        <source src="" type="video/mp4">
+        Votre navigateur ne supporte pas la vidéo.
+      </video>
+      <button class="start-quiz-btn" onclick="startQuiz()">Commencer le Quiz</button>
+    </div>
+  </div>
+
+  <!-- Three.js et contrôles -->
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
+
+  <script>
+    // État global
+    const gameState = {
+      completedInventors: new Set(),
+      currentInventor: null,
+      chronologicalMode: false,
+      chronologicalOrder: ['bush', 'tomlinson', 'berners-lee', 'wood'],
+      currentChronoIndex: 0
+    };
+
+    // Données des inventeurs
+    const inventors = {
+      bush: {
+        name: 'Vannevar Bush',
+        year: '1945',
+        invention: 'Memex',
+        video: 'bush video .mp4',
+        position: { lat: 40.7, lng: -74.0 }, // New York
+        description: 'Concepteur du Memex, précurseur de l\'hypertexte'
+      },
+      tomlinson: {
+        name: 'Ray Tomlinson',
+        year: '1971', 
+        invention: 'Email',
+        video: 'Ray Tomlinson video .mp4',
+        position: { lat: 42.3, lng: -71.1 }, // Boston
+        description: 'Inventeur du courrier électronique'
+      },
+      'berners-lee': {
+        name: 'Tim Berners-Lee',
+        year: '1989',
+        invention: 'World Wide Web',
+        video: 'Tim Berners-Lee video .mp4',
+        position: { lat: 46.2, lng: 6.1 }, // CERN, Genève
+        description: 'Créateur du World Wide Web'
+      },
+      wood: {
+        name: 'Gavin Wood',
+        year: '2014',
+        invention: 'Ethereum',
+        video: 'Vitalik Buterin video .mp4',
+        position: { lat: 51.5, lng: -0.1 }, // London
+        description: 'Co-fondateur d\'Ethereum et Web3'
+      }
+    };
+
+    // === Configuration Three.js ===
+    let scene, camera, renderer, earth, clouds, controls;
+    let raycaster, mouse;
+
+    function initThreeJS() {
+      // Scène
+      scene = new THREE.Scene();
+      
+      // Caméra
+      camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+      camera.position.set(0, 0, 2.5);
+      
+      // Rendu
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+      renderer.setSize(window.innerWidth, window.innerHeight);
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      document.body.appendChild(renderer.domElement);
+
+      // Lumières
+      const ambientLight = new THREE.AmbientLight(0x404040, 0.4);
+      scene.add(ambientLight);
+      
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+      directionalLight.position.set(5, 3, 5);
+      directionalLight.castShadow = true;
+      scene.add(directionalLight);
+
+      // Textures de la Terre
+      const loader = new THREE.TextureLoader();
+      
+      // Texture principale de la Terre (haute résolution)
+      const earthTexture = loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_atmos_2048.jpg');
+      const bumpMap = loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_normal_2048.jpg');
+      const specularMap = loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_specular_2048.jpg');
+
+      // Géométrie et matériau de la Terre
+      const earthGeometry = new THREE.SphereGeometry(1, 128, 128);
+      const earthMaterial = new THREE.MeshPhongMaterial({
+        map: earthTexture,
+        normalMap: bumpMap,
+        normalScale: new THREE.Vector2(0.1, 0.1),
+        specularMap: specularMap,
+        specular: new THREE.Color(0x111111),
+        shininess: 25
+      });
+      
+      earth = new THREE.Mesh(earthGeometry, earthMaterial);
+      earth.castShadow = true;
+      earth.receiveShadow = true;
+      scene.add(earth);
+
+      // Nuages
+      const cloudTexture = loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@dev/examples/textures/planets/earth_clouds_1024.png');
+      const cloudGeometry = new THREE.SphereGeometry(1.01, 64, 64);
+      const cloudMaterial = new THREE.MeshPhongMaterial({
+        map: cloudTexture,
+        transparent: true,
+        opacity: 0.8
+      });
+      clouds = new THREE.Mesh(cloudGeometry, cloudMaterial);
+      scene.add(clouds);
+
+      // Fond étoilé
+      const starGeometry = new THREE.SphereGeometry(50, 64, 64);
+      const starMaterial = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        side: THREE.BackSide
+      });
+      
+      // Créer un pattern d'étoiles
+      const starVertices = [];
+      for (let i = 0; i < 1000; i++) {
+        const x = (Math.random() - 0.5) * 100;
+        const y = (Math.random() - 0.5) * 100;
+        const z = (Math.random() - 0.5) * 100;
+        starVertices.push(x, y, z);
+      }
+      
+      const starsGeometry = new THREE.BufferGeometry();
+      starsGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+      const starsMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 0.5 });
+      const stars = new THREE.Points(starsGeometry, starsMaterial);
+      scene.add(stars);
+
+      // Contrôles
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+      controls.rotateSpeed = 0.5;
+      controls.zoomSpeed = 0.8;
+      controls.minDistance = 1.8;
+      controls.maxDistance = 5;
+
+      // Raycaster pour détection de clic
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+
+      // Positionner les marqueurs d'inventeurs
+      positionInventorMarkers();
+      
+      // Démarrer l'animation
+      animate();
+      
+      // Masquer l'écran de chargement
+      setTimeout(() => {
+        document.getElementById('loading-screen').classList.add('hidden');
+      }, 2000);
+    }
+
+    // Conversion coordonnées géographiques -> 3D
+    function latLngToVector3(lat, lng, radius = 1) {
+      const phi = (90 - lat) * (Math.PI / 180);
+      const theta = (lng + 180) * (Math.PI / 180);
+      
+      const x = -(radius * Math.sin(phi) * Math.cos(theta));
+      const z = (radius * Math.sin(phi) * Math.sin(theta));
+      const y = (radius * Math.cos(phi));
+      
+      return new THREE.Vector3(x, y, z);
+    }
+
+    // Positionner les marqueurs des inventeurs
+    function positionInventorMarkers() {
+      Object.keys(inventors).forEach(key => {
+        const inventor = inventors[key];
+        const marker = document.getElementById(`${key}-marker`);
+        
+        if (marker && inventor.position) {
+          // Calculer la position 3D sur la sphère
+          const position3D = latLngToVector3(inventor.position.lat, inventor.position.lng, 1.15);
+          
+          // Fonction pour mettre à jour la position 2D du marqueur
+          function updateMarkerPosition() {
+            const vector = position3D.clone();
+            vector.project(camera);
+            
+            const x = (vector.x * 0.5 + 0.5) * window.innerWidth;
+            const y = (vector.y * -0.5 + 0.5) * window.innerHeight;
+            
+            marker.style.left = `${x - marker.offsetWidth / 2}px`;
+            marker.style.top = `${y - marker.offsetHeight / 2}px`;
+            
+            // Masquer si derrière la planète
+            marker.style.display = vector.z > 0 ? 'block' : 'none';
+          }
+          
+          // Mettre à jour la position à chaque frame
+          marker.updatePosition = updateMarkerPosition;
+        }
+      });
+    }
+
+    // Animation principale
+    function animate() {
+      requestAnimationFrame(animate);
+
+      // Rotation automatique de la Terre
+      earth.rotation.y += 0.002;
+      clouds.rotation.y += 0.0025;
+
+      // Mettre à jour les contrôles
+      controls.update();
+
+      // Mettre à jour les positions des marqueurs
+      Object.keys(inventors).forEach(key => {
+        const marker = document.getElementById(`${key}-marker`);
+        if (marker && marker.updatePosition) {
+          marker.updatePosition();
+        }
+      });
+
+      // Rendu
+      renderer.render(scene, camera);
+    }
+
+    // Sélection d'un inventeur
+    function selectInventor(inventorId) {
+      if (gameState.chronologicalMode) {
+        // En mode chronologique, vérifier l'ordre
+        const expectedIndex = gameState.chronologicalOrder.indexOf(inventorId);
+        if (expectedIndex !== gameState.currentChronoIndex) {
+          alert(`Suivez l'ordre chronologique ! Prochain : ${inventors[gameState.chronologicalOrder[gameState.currentChronoIndex]].name}`);
+          return;
+        }
+      }
+
+      gameState.currentInventor = inventorId;
+      const inventor = inventors[inventorId];
+      
+      // Afficher la vidéo
+      showVideo(inventor.video);
+      
+      // Marquer comme sélectionné
+      const marker = document.getElementById(`${inventorId}-marker`);
+      marker.style.background = 'var(--neon-pink)';
+      marker.style.borderColor = 'var(--neon-pink)';
+    }
+
+    // Afficher la vidéo
+    function showVideo(videoFileName) {
+      const modal = document.getElementById('video-modal');
+      const video = document.getElementById('inventor-video');
+      
+      video.src = videoFileName;
+      modal.style.display = 'flex';
+      video.play();
+    }
+
+    // Fermer la vidéo
+    function closeVideo() {
+      const modal = document.getElementById('video-modal');
+      const video = document.getElementById('inventor-video');
+      
+      video.pause();
+      video.currentTime = 0;
+      modal.style.display = 'none';
+      
+      // Réinitialiser la couleur du marqueur
+      if (gameState.currentInventor) {
+        const marker = document.getElementById(`${gameState.currentInventor}-marker`);
+        marker.style.background = 'rgba(0, 240, 255, 0.9)';
+        marker.style.borderColor = 'var(--electric-blue)';
+      }
+    }
+
+    // Démarrer le quiz
+    function startQuiz() {
+      if (!gameState.currentInventor) return;
+      
+      closeVideo();
+      
+      // Rediriger vers le quiz avec le paramètre de l'inventeur
+      window.location.href = `/admin.html?inventor=${gameState.currentInventor}`;
+    }
+
+    // Mode chronologique
+    function startChronologicalMode() {
+      gameState.chronologicalMode = true;
+      gameState.currentChronoIndex = 0;
+      
+      // Masquer tous les marqueurs sauf le premier
+      Object.keys(inventors).forEach((key, index) => {
+        const marker = document.getElementById(`${key}-marker`);
+        if (index === 0) {
+          marker.style.animation = 'pulse-icon 2s ease-in-out infinite';
+        } else {
+          marker.style.opacity = '0.3';
+          marker.style.pointerEvents = 'none';
+        }
+      });
+      
+      alert('Mode chronologique activé ! Suivez l\'ordre historique en commençant par Vannevar Bush (1945)');
+    }
+
+    // Réinitialiser la planète
+    function resetPlanet() {
+      gameState.completedInventors.clear();
+      gameState.chronologicalMode = false;
+      gameState.currentChronoIndex = 0;
+      
+      // Réinitialiser tous les marqueurs
+      Object.keys(inventors).forEach(key => {
+        const marker = document.getElementById(`${key}-marker`);
+        marker.style.opacity = '1';
+        marker.style.pointerEvents = 'auto';
+        marker.style.animation = 'none';
+        marker.classList.remove('completed');
+        
+        // Réinitialiser les points de progression
+        const dot = document.querySelector(`.progress-dot[data-inventor="${key}"]`);
+        if (dot) dot.classList.remove('completed');
+      });
+    }
+
+    // Marquer un inventeur comme terminé
+    function completeInventor(inventorId) {
+      gameState.completedInventors.add(inventorId);
+      
+      // Marquer le marqueur comme terminé
+      const marker = document.getElementById(`${inventorId}-marker`);
+      marker.classList.add('completed');
+      
+      // Marquer le point de progression
+      const dot = document.querySelector(`.progress-dot[data-inventor="${inventorId}"]`);
+      if (dot) dot.classList.add('completed');
+      
+      // En mode chronologique, passer au suivant
+      if (gameState.chronologicalMode) {
+        gameState.currentChronoIndex++;
+        
+        if (gameState.currentChronoIndex < gameState.chronologicalOrder.length) {
+          const nextId = gameState.chronologicalOrder[gameState.currentChronoIndex];
+          const nextMarker = document.getElementById(`${nextId}-marker`);
+          nextMarker.style.opacity = '1';
+          nextMarker.style.pointerEvents = 'auto';
+          nextMarker.style.animation = 'pulse-icon 2s ease-in-out infinite';
+        } else {
+          // Tous terminés
+          alert('Félicitations ! Vous avez terminé tous les inventeurs dans l\'ordre chronologique !');
+          resetPlanet();
+        }
+      }
+      
+      // Vérifier si tous sont terminés
+      if (gameState.completedInventors.size === Object.keys(inventors).length) {
+        setTimeout(() => {
+          alert('Félicitations ! Vous avez exploré toute l\'histoire du Web !');
+        }, 1000);
+      }
+    }
+
+    // Gestion du redimensionnement
+    window.addEventListener('resize', () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    // Initialisation au chargement
+    window.addEventListener('load', initThreeJS);
+
+    // Écouter les messages du quiz pour marquer les inventeurs comme terminés
+    window.addEventListener('message', (event) => {
+      if (event.data.type === 'inventor-completed') {
+        completeInventor(event.data.inventorId);
+      }
+    });
+  </script>
+</body>
+</html>

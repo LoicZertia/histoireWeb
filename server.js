@@ -44,10 +44,84 @@ const gameState = {
   isQuizActive: false,
   timer: null,
   timeRemaining: 0,
-  responses: new Map() // questionIndex -> Map(socketId -> { answer, time })
+  responses: new Map(), // questionIndex -> Map(socketId -> { answer, time })
+  // Nouvelles propriétés pour le système d'inventeurs
+  currentInventor: null, // 'bush', 'tomlinson', 'berners-lee', 'wood'
+  completedInventors: new Set(), // inventeurs terminés
+  inventorQuestions: [], // questions de l'inventeur actuel
+  globalScores: new Map(), // scores globaux cumulés de tous les inventeurs
+  mode: 'planet' // 'planet', 'quiz', 'video'
 };
 
-// Questions du quiz (ère 1 - Vannevar Bush comme exemple)
+// Questions du quiz organisées par inventeur (2 questions par inventeur)
+const inventorQuestions = {
+  bush: [
+    {
+      question: "En quelle année Vannevar Bush a-t-il publié 'As We May Think' ?",
+      options: ["1935", "1945", "1955", "1965"],
+      correct: 1,
+      era: "Vannevar Bush (1945)",
+      timeLimit: 20
+    },
+    {
+      question: "Comment s'appelait la machine conceptuelle proposée par Vannevar Bush ?",
+      options: ["Memex", "Hypertext", "Docuverse", "Xanadu"],
+      correct: 0,
+      era: "Vannevar Bush (1945)",
+      timeLimit: 20
+    }
+  ],
+  tomlinson: [
+    {
+      question: "Qui a inventé l'email en 1971 ?",
+      options: ["Tim Berners-Lee", "Ray Tomlinson", "Vint Cerf", "Larry Page"],
+      correct: 1,
+      era: "Ray Tomlinson (1971)",
+      timeLimit: 20
+    },
+    {
+      question: "Quel symbole a été choisi par Ray Tomlinson pour séparer le nom et l'adresse ?",
+      options: ["#", "@", "&", "%"],
+      correct: 1,
+      era: "Ray Tomlinson (1971)",
+      timeLimit: 15
+    }
+  ],
+  'berners-lee': [
+    {
+      question: "En quelle année Tim Berners-Lee a-t-il créé le World Wide Web ?",
+      options: ["1989", "1991", "1993", "1995"],
+      correct: 0,
+      era: "Tim Berners-Lee (1989)",
+      timeLimit: 20
+    },
+    {
+      question: "Quel était le premier navigateur web créé par Tim Berners-Lee ?",
+      options: ["Mosaic", "Netscape", "WorldWideWeb", "Internet Explorer"],
+      correct: 2,
+      era: "Tim Berners-Lee (1989)",
+      timeLimit: 20
+    }
+  ],
+  wood: [
+    {
+      question: "Qu'est-ce qu'Ethereum, co-fondé par Gavin Wood ?",
+      options: ["Un réseau social", "Une plateforme blockchain", "Un moteur de recherche", "Un système d'email"],
+      correct: 1,
+      era: "Gavin Wood (2014)",
+      timeLimit: 20
+    },
+    {
+      question: "Quel langage de programmation Gavin Wood a-t-il créé pour Ethereum ?",
+      options: ["JavaScript", "Python", "Solidity", "Ruby"],
+      correct: 2,
+      era: "Gavin Wood (2014)",
+      timeLimit: 25
+    }
+  ]
+};
+
+// Questions du quiz global (ancien système)
 const quizQuestions = [
   {
     question: "En quelle année Vannevar Bush a-t-il publié 'As We May Think' ?",
@@ -121,6 +195,10 @@ function calculateScore(isCorrect, timeRemaining, totalTime) {
 // Routes
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+app.get('/planet', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'planet.html'));
 });
 
 app.get('/play', (req, res) => {
@@ -216,7 +294,11 @@ io.on('connection', (socket) => {
 
   // Passe à la question suivante
   socket.on('next-question', () => {
-    nextQuestion();
+    if (gameState.currentInventor) {
+      nextInventorQuestion();
+    } else {
+      nextQuestion();
+    }
   });
 
   // Joueur soumet réponse
@@ -242,7 +324,9 @@ io.on('connection', (socket) => {
       timestamp: Date.now()
     });
 
-    const question = quizQuestions[questionIndex];
+    const question = gameState.currentInventor ? 
+      gameState.inventorQuestions[questionIndex] : 
+      quizQuestions[questionIndex];
     const isCorrect = answer === question.correct;
     const points = calculateScore(isCorrect, timeRemaining, question.timeLimit);
 
@@ -269,6 +353,111 @@ io.on('connection', (socket) => {
     const player = gameState.players.get(socket.id);
     if (player) {
       console.log(`${player.pseudo} s'est déconnecté`);
+      gameState.players.delete(socket.id);
+      
+      io.emit('players-update', {
+        players: Array.from(gameState.players.entries()).map(([id, p]) => ({
+          id,
+          pseudo: p.pseudo,
+          score: p.score
+        })),
+        count: gameState.players.size
+      });
+    }
+  });
+
+  // === NOUVEAUX ÉVÉNEMENTS POUR LES INVENTEURS ===
+
+  // Sélection d'un inventeur depuis la planète
+  socket.on('select-inventor', (data) => {
+    const { inventorId } = data;
+    
+    if (!inventorQuestions[inventorId]) {
+      socket.emit('error', { message: 'Inventeur inconnu' });
+      return;
+    }
+
+    // Définir l'inventeur actuel
+    gameState.currentInventor = inventorId;
+    gameState.inventorQuestions = inventorQuestions[inventorId];
+    gameState.questionIndex = -1;
+    gameState.responses.clear();
+    
+    // Réinitialiser les scores des joueurs pour cet inventeur
+    gameState.players.forEach(player => {
+      player.score = 0;
+      player.answers = [];
+    });
+
+    console.log(`Inventeur sélectionné: ${inventorId}`);
+    
+    // Informer tous les clients
+    io.emit('inventor-selected', { 
+      inventorId,
+      inventorName: getInventorName(inventorId)
+    });
+  });
+
+  // Démarrer le quiz d'un inventeur
+  socket.on('start-inventor-quiz', (data) => {
+    if (!gameState.currentInventor) {
+      socket.emit('error', { message: 'Aucun inventeur sélectionné' });
+      return;
+    }
+
+    gameState.isQuizActive = true;
+    gameState.mode = 'quiz';
+    
+    io.emit('quiz-started', { 
+      inventorId: gameState.currentInventor,
+      totalQuestions: gameState.inventorQuestions.length
+    });
+
+    // Démarrer la première question après 3 secondes
+    setTimeout(() => {
+      nextInventorQuestion();
+    }, 3000);
+
+    console.log(`Quiz démarré pour l'inventeur: ${gameState.currentInventor}`);
+  });
+
+  // Terminer le quiz d'un inventeur et retourner à la planète
+  socket.on('complete-inventor', (data) => {
+    if (!gameState.currentInventor) return;
+    
+    const inventorId = gameState.currentInventor;
+    
+    // Marquer l'inventeur comme terminé
+    gameState.completedInventors.add(inventorId);
+    
+    // Sauvegarder les scores dans le classement global
+    gameState.players.forEach(player => {
+      if (!gameState.globalScores.has(player.pseudo)) {
+        gameState.globalScores.set(player.pseudo, 0);
+      }
+      const currentGlobalScore = gameState.globalScores.get(player.pseudo);
+      gameState.globalScores.set(player.pseudo, currentGlobalScore + player.score);
+    });
+    
+    // Réinitialiser l'état du quiz
+    gameState.currentInventor = null;
+    gameState.inventorQuestions = [];
+    gameState.isQuizActive = false;
+    gameState.mode = 'planet';
+    
+    // Envoyer le signal de retour à la planète
+    io.emit('return-to-planet', { 
+      completedInventor: inventorId,
+      globalLeaderboard: getGlobalLeaderboard()
+    });
+
+    console.log(`Inventeur ${inventorId} terminé, retour à la planète`);
+  });
+
+  // Déconnexion
+  socket.on('disconnect', () => {
+    if (gameState.players.has(socket.id)) {
+      console.log(`Joueur déconnecté: ${gameState.players.get(socket.id).pseudo}`);
       gameState.players.delete(socket.id);
       
       io.emit('players-update', {
@@ -329,7 +518,9 @@ function startTimer(duration) {
 }
 
 function showResults() {
-  const question = quizQuestions[gameState.questionIndex];
+  const question = gameState.currentInventor ? 
+    gameState.inventorQuestions[gameState.questionIndex] : 
+    quizQuestions[gameState.questionIndex];
   const responses = gameState.responses.get(gameState.questionIndex) || new Map();
 
   // Calcule stats
@@ -351,7 +542,8 @@ function showResults() {
     stats,
     leaderboard,
     totalResponses: responses.size,
-    totalPlayers: gameState.players.size
+    totalPlayers: gameState.players.size,
+    inventorId: gameState.currentInventor
   });
 
   // Envoie le résultat individuel à chaque joueur
@@ -367,7 +559,8 @@ function showResults() {
         correctAnswer: question.correct,
         yourAnswer: playerResponse.answer,
         points: playerAnswer ? playerAnswer.points : 0,
-        newScore: player.score
+        newScore: player.score,
+        inventorId: gameState.currentInventor
       });
     }
   });
@@ -377,7 +570,9 @@ function showResults() {
 
 function broadcastQuestionStats() {
   const responses = gameState.responses.get(gameState.questionIndex) || new Map();
-  const question = quizQuestions[gameState.questionIndex];
+  const question = gameState.currentInventor ? 
+    gameState.inventorQuestions[gameState.questionIndex] : 
+    quizQuestions[gameState.questionIndex];
 
   const stats = question.options.map((opt, idx) => {
     const count = Array.from(responses.values()).filter(r => r.answer === idx).length;
@@ -388,7 +583,8 @@ function broadcastQuestionStats() {
     questionIndex: gameState.questionIndex,
     stats,
     totalResponses: responses.size,
-    totalPlayers: gameState.players.size
+    totalPlayers: gameState.players.size,
+    inventorId: gameState.currentInventor
   });
 }
 
@@ -411,6 +607,144 @@ function endQuiz() {
 
   console.log('Quiz terminé!');
   console.log('Classement final:', finalLeaderboard.slice(0, 3));
+}
+
+// === NOUVELLES FONCTIONS POUR LES INVENTEURS ===
+
+function nextInventorQuestion() {
+  gameState.questionIndex++;
+
+  if (gameState.questionIndex >= gameState.inventorQuestions.length) {
+    endInventorQuiz();
+    return;
+  }
+
+  const question = gameState.inventorQuestions[gameState.questionIndex];
+  gameState.currentQuestion = question;
+  gameState.timeRemaining = question.timeLimit;
+
+  // Broadcast question à tous
+  io.emit('new-question', {
+    questionIndex: gameState.questionIndex,
+    question: question.question,
+    options: question.options,
+    timeLimit: question.timeLimit,
+    era: question.era,
+    totalQuestions: gameState.inventorQuestions.length,
+    inventorId: gameState.currentInventor
+  });
+
+  console.log(`Question inventeur ${gameState.questionIndex + 1}/${gameState.inventorQuestions.length}: ${question.question}`);
+
+  // Timer
+  startTimer(question.timeLimit);
+}
+
+function showInventorResults() {
+  const question = gameState.inventorQuestions[gameState.questionIndex];
+  const responses = gameState.responses.get(gameState.questionIndex) || new Map();
+
+  // Calcule stats
+  const stats = question.options.map((opt, idx) => {
+    const count = Array.from(responses.values()).filter(r => r.answer === idx).length;
+    return { option: opt, count, isCorrect: idx === question.correct };
+  });
+
+  // Top 5 joueurs
+  const leaderboard = Array.from(gameState.players.entries())
+    .map(([id, p]) => ({ pseudo: p.pseudo, score: p.score }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+
+  // Broadcast général pour l'admin
+  io.emit('question-results', {
+    questionIndex: gameState.questionIndex,
+    correctAnswer: question.correct,
+    stats,
+    leaderboard,
+    totalResponses: responses.size,
+    totalPlayers: gameState.players.size,
+    inventorId: gameState.currentInventor
+  });
+
+  // Envoie le résultat individuel à chaque joueur
+  gameState.players.forEach((player, socketId) => {
+    const playerResponse = responses.get(socketId);
+    if (playerResponse) {
+      const isCorrect = playerResponse.answer === question.correct;
+      const playerAnswer = player.answers.find(a => a.questionIndex === gameState.questionIndex);
+      
+      io.to(socketId).emit('player-result', {
+        questionIndex: gameState.questionIndex,
+        isCorrect,
+        correctAnswer: question.correct,
+        yourAnswer: playerResponse.answer,
+        points: playerAnswer ? playerAnswer.points : 0,
+        newScore: player.score,
+        inventorId: gameState.currentInventor
+      });
+    }
+  });
+
+  console.log(`Résultats inventeur ${gameState.questionIndex + 1}: ${responses.size}/${gameState.players.size} réponses`);
+}
+
+function endInventorQuiz() {
+  gameState.isQuizActive = false;
+  clearInterval(gameState.timer);
+
+  const finalLeaderboard = Array.from(gameState.players.entries())
+    .map(([id, p]) => ({
+      pseudo: p.pseudo,
+      score: p.score,
+      correctAnswers: p.answers.filter(a => a.correct).length
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  io.emit('inventor-quiz-ended', {
+    inventorId: gameState.currentInventor,
+    leaderboard: finalLeaderboard,
+    totalQuestions: gameState.inventorQuestions.length,
+    globalLeaderboard: getGlobalLeaderboard()
+  });
+
+  console.log(`Quiz inventeur ${gameState.currentInventor} terminé!`);
+  console.log('Classement:', finalLeaderboard.slice(0, 3));
+}
+
+function broadcastInventorStats() {
+  const responses = gameState.responses.get(gameState.questionIndex) || new Map();
+  const question = gameState.inventorQuestions[gameState.questionIndex];
+
+  const stats = question.options.map((opt, idx) => {
+    const count = Array.from(responses.values()).filter(r => r.answer === idx).length;
+    return { option: opt, count };
+  });
+
+  io.emit('live-stats', {
+    questionIndex: gameState.questionIndex,
+    stats,
+    totalResponses: responses.size,
+    totalPlayers: gameState.players.size,
+    inventorId: gameState.currentInventor
+  });
+}
+
+function getInventorName(inventorId) {
+  const names = {
+    bush: 'Vannevar Bush',
+    tomlinson: 'Ray Tomlinson',
+    'berners-lee': 'Tim Berners-Lee',
+    wood: 'Gavin Wood'
+  };
+  return names[inventorId] || 'Inventeur inconnu';
+}
+
+function getGlobalLeaderboard() {
+  return Array.from(gameState.globalScores.entries())
+    .map(([pseudo, score]) => ({ pseudo, score }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 10);
 }
 
 server.listen(PORT, () => {
