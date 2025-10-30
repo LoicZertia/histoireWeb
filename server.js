@@ -5,7 +5,7 @@ const os = require('os');
 const game = require('./game');
 const ws = require('./websocket');
 
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 const MIME_TYPES = {
     '.html': 'text/html',
