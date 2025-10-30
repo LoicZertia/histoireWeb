@@ -147,6 +147,11 @@ function updateJoinLinkDisplay() {
 }
 
 async function loadServerInfo() {
+  // Always use the current page URL for QR code
+  const protocol = window.location.protocol.replace(':', '');
+  const host = window.location.host; // includes port if present
+  state.joinUrlBase = `${protocol}://${host}/player`;
+  
   try {
     const response = await fetch("/api/server-info", { cache: "no-store" });
     if (!response.ok) {
@@ -155,8 +160,6 @@ async function loadServerInfo() {
       return;
     }
     const data = await response.json();
-    const protocol =
-      window.location.protocol === "https:" ? "https" : "http";
     const port =
       typeof data.port === "number" && data.port > 0
         ? data.port
@@ -172,23 +175,11 @@ async function loadServerInfo() {
           .map((addr) => `${protocol}://${addr}${portSuffix}/player`)
       : [];
 
-    const fallbackHost = window.location.hostname
-      ? `${protocol}://${window.location.hostname}${
-          portSuffix || (window.location.port ? `:${window.location.port}` : "")
-        }/player`
-      : state.joinUrlBase;
-
     const uniqueUrls = Array.from(
-      new Set([...lanUrls, fallbackHost].filter(Boolean))
+      new Set([state.joinUrlBase, ...lanUrls].filter(Boolean))
     );
     if (uniqueUrls.length) {
       state.serverAddresses = uniqueUrls;
-      const preferred =
-        uniqueUrls.find(
-          (url) =>
-            !/localhost|127\.0\.0\.1/i.test(url)
-        ) || uniqueUrls[0];
-      state.joinUrlBase = preferred;
     }
   } catch (error) {
     // Ignore network errors and keep defaults.
