@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0"
+    />
+    <title>Quiz Hist - Joueur</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Montserrat:wght@500;600;700;900&display=swap"
+    />
+    <link rel="stylesheet" href="/css/style-kahoot.css" />
+  </head>
+  <body class="player">
+    <header class="app-header compact">
+      <h1>Quiz Hist Web</h1>
+      <p id="player-status">Rejoignez la salle avec votre nom et le code.</p>
+    </header>
+
+    <main class="player-layout">
+      <section id="join-section" class="card join-card">
+        <h2>Connexion</h2>
+        <form id="join-form">
+          <label>
+            Votre prénom ou pseudo
+            <input
+              id="player-name"
+              type="text"
+              name="name"
+              maxlength="24"
+              required
+            />
+          </label>
+          <label>
+            Code de la salle
+            <input
+              id="game-code"
+              type="text"
+              name="code"
+              maxlength="4"
+              inputmode="numeric"
+              required
+            />
+          </label>
+          <button type="submit" class="primary">Rejoindre</button>
+          <p id="join-error" class="error hidden"></p>
+        </form>
+      </section>
+
+      <section id="game-section" class="card hidden">
+        <header>
+          <h2 id="game-heading">En attente du lancement du quiz...</h2>
+        </header>
+        <div id="question-area" class="question-area waiting">
+          <p>Gardez la page ouverte. Le quiz va bientôt commencer.</p>
+        </div>
+        <footer class="player-footer">
+          <span id="player-timer" class="timer hidden">25</span>
+          <div id="player-score" class="score-pill hidden">
+            Score : <strong>0</strong>
+          </div>
+        </footer>
+      </section>
+
+      <section class="card">
+        <header>
+          <h2>Classement</h2>
+        </header>
+        <ol id="player-leaderboard" class="player-leaderboard"></ol>
+      </section>
+    </main>
+
+    <template id="answer-button-template">
+      <button class="answer-button"></button>
+    </template>
+
+    <template id="leaderboard-item-template">
+      <li>
+        <span class="rank"></span>
+        <span class="name"></span>
+        <span class="score"></span>
+      </li>
+    </template>
+
+    
+    <script type="module" src="/js/player.js"></script>
+  </body>
+</html>

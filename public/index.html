@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz Hist - Animateur</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700&family=Montserrat:wght@500;600;700;900&display=swap"
+    />
+    <link rel="stylesheet" href="/css/style-kahoot.css" />
+  </head>
+  <body class="host">
+    <div class="host-shell">
+      <section class="card stage-card">
+        <header class="stage-header">
+          <div class="stage-brand">
+            <h1>Quiz Hist</h1>
+            <p id="phase-title">Salle d'attente</p>
+          </div>
+          <div class="code-panel">
+            <span class="label">Code</span>
+            <strong id="join-code">----</strong>
+            <img
+              id="join-qr"
+              class="join-qr"
+              alt="QR code pour rejoindre la partie"
+              src=""
+            />
+            <span id="join-link-text" class="join-link"></span>
+            <ul id="network-addresses" class="address-list"></ul>
+          </div>
+        </header>
+        <div class="control-bar">
+          <div class="control-buttons">
+            <button id="start-game" class="primary" disabled>Lancer</button>
+            <button id="next-phase" class="secondary" disabled>Suivant</button>
+            <button id="reset-game" class="ghost">Reinitialiser</button>
+            <button id="create-game" class="ghost">Nouvelle salle</button>
+          </div>
+          <div class="control-status">
+            <span id="timer-display" class="timer hidden">25</span>
+            <span id="round-progress" class="round-progress"></span>
+          </div>
+        </div>
+        <div id="stage-body" class="stage-body">
+          <div class="stage-placeholder">
+            <p>
+              Projetez cette fenetre et demandez aux joueurs de scanner le QR
+              code ou de saisir le code a 4 chiffres.
+            </p>
+            <p>Lancez la partie lorsque tout le monde est pret.</p>
+          </div>
+        </div>
+        <div class="scoreboard-overlay">
+          <h2>Top 5</h2>
+          <ol id="scoreboard-list" class="scoreboard-list"></ol>
+        </div>
+      </section>
+
+      <section class="card players-card">
+        <header>
+          <h2>Joueurs</h2>
+          <span id="player-count" class="badge">0</span>
+        </header>
+        <ul id="player-list" class="player-list"></ul>
+      </section>
+    </div>
+
+    <template id="player-list-item">
+      <li class="player-list-item">
+        <span class="dot"></span>
+        <span class="name"></span>
+        <span class="score"></span>
+      </li>
+    </template>
+
+    <template id="scoreboard-item-template">
+      <li class="scoreboard-item">
+        <span class="rank"></span>
+        <span class="name"></span>
+        <span class="points"></span>
+      </li>
+    </template>
+
+    
+    <script type="module" src="/js/host.js"></script>
+  </body>
+</html>
