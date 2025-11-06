@@ -22,9 +22,18 @@ const socket = new EventEmitter();
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
+// Close WebSocket before page unload to prevent zombie connections
+window.addEventListener('beforeunload', () => {
+  if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
+    ws.close();
+  }
+});
+
 ws.onopen = () => {
   console.log('Connected to WebSocket server');
   socket.emit('connect');
+  // Create game immediately when WebSocket connects
+  emitToServer("host:createGame");
 };
 
 ws.onmessage = (event) => {
@@ -72,6 +81,10 @@ const playerCountEl = document.getElementById("player-count");
 const scoreboardListEl = document.getElementById("scoreboard-list");
 const scoreboardOverlayEl = document.querySelector(".scoreboard-overlay");
 
+const loadingOverlay = document.getElementById("loading-overlay");
+const progressFill = document.getElementById("progress-fill");
+const loadingStatus = document.getElementById("loading-status");
+
 const playerItemTemplate = document.getElementById("player-list-item");
 const scoreboardItemTemplate = document.getElementById(
   "scoreboard-item-template"
@@ -88,6 +101,7 @@ const state = {
   timerInterval: null,
   timerRemaining: 0,
   lastLeaderboard: [],
+  videosLoaded: false,
 };
 
 function updateOverlayVisibility(entries) {
@@ -475,13 +489,75 @@ function showFinishedStage(payload) {
   renderLeaderboard(payload.leaderboard || []);
 }
 
+// Preload videos function
+async function preloadVideos() {
+  const videoUrls = [
+    '/assets/videos/tim-berners-lee.mp4',
+    '/assets/videos/ray-tomlinson.mp4',
+    '/assets/videos/vitalik-buterin.mp4',
+    '/assets/videos/bush.mp4'
+  ];
+  
+  const totalVideos = videoUrls.length;
+  let loadedVideos = 0;
+  
+  const promises = videoUrls.map((url) => {
+    return new Promise((resolve, reject) => {
+      const video = document.createElement('video');
+      video.preload = 'auto';
+      
+      video.addEventListener('canplaythrough', () => {
+        loadedVideos++;
+        const progress = Math.round((loadedVideos / totalVideos) * 100);
+        progressFill.style.width = `${progress}%`;
+        loadingStatus.textContent = `Chargement... ${progress}%`;
+        resolve();
+      });
+      
+      video.addEventListener('error', () => {
+        console.error(`Failed to load video: ${url}`);
+        loadedVideos++;
+        const progress = Math.round((loadedVideos / totalVideos) * 100);
+        progressFill.style.width = `${progress}%`;
+        loadingStatus.textContent = `Chargement... ${progress}%`;
+        resolve(); // Continue even if one video fails
+      });
+      
+      video.src = url;
+      video.load();
+    });
+  });
+  
+  await Promise.all(promises);
+  
+  // Mark as loaded
+  state.videosLoaded = true;
+  loadingStatus.textContent = 'Prêt !';
+  
+  // Hide loading overlay
+  setTimeout(() => {
+    loadingOverlay.classList.add('loaded');
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+    }, 500);
+  }, 300);
+}
+
+// Start preloading when page loads
+preloadVideos();
+
 loadServerInfo();
 
 createGameBtn.addEventListener("click", () => {
-  emitToServer("host:createGame");
+  // Reload the page to create a fresh game session
+  window.location.reload();
 });
 
 startGameBtn.addEventListener("click", () => {
+  if (!state.videosLoaded) {
+    alert("Veuillez attendre la fin du chargement des vidéos.");
+    return;
+  }
   emitToServer("host:startGame");
 });
 
@@ -499,16 +575,6 @@ resetGameBtn.addEventListener("click", () => {
 socket.on("connect", () => {
   emitToServer("host:createGame");
 });
-
-// Initialize game when page loads (if WebSocket already open or when it opens)
-function initializeHost() {
-  if (ws.readyState === WebSocket.OPEN) {
-    emitToServer("host:createGame");
-  }
-}
-
-// Call init after a small delay to ensure WebSocket is ready
-setTimeout(initializeHost, 100);
 
 socket.on("host:gameCreated", (data) => {
   const { code, rounds } = data;

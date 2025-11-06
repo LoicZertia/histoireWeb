@@ -183,7 +183,12 @@ function startGame() {
 }
 
 function getGameState() {
-    return { ...state };
+    return state;
+}
+
+function clearHost() {
+    // Clear host but keep the game code and players
+    state.hostId = null;
 }
 
 module.exports = {
@@ -195,4 +200,5 @@ module.exports = {
     handleAnswer,
     startGame,
     getGameState,
+    clearHost,
 };

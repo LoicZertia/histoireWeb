@@ -4,22 +4,29 @@ const rounds = [
         video: {
             src: '/assets/videos/tim-berners-lee.mp4',
             title: 'Tim Berners-Lee',
-            summary: 'The inventor of the World Wide Web.'
+            summary: 'L\'inventeur du World Wide Web.'
         },
         questions: [
             {
                 id: 'tbl-1',
-                text: 'What did Tim Berners-Lee invent?',
-                options: ['The Internet', 'The World Wide Web', 'JavaScript', 'HTML'],
+                text: 'En quelle année Tim Berners-Lee a-t-il inventé le World Wide Web ?',
+                options: ['1985', '1989', '1991', '1993'],
                 correctIndex: 1,
-                explanation: 'Tim Berners-Lee invented the World Wide Web in 1989.'
+                explanation: 'Tim Berners-Lee a inventé le World Wide Web en 1989 au CERN, en Suisse.'
             },
             {
                 id: 'tbl-2',
-                text: 'What was the name of the first web browser?',
-                options: ['Mosaic', 'Netscape Navigator', 'WorldWideWeb', 'Internet Explorer'],
-                correctIndex: 2,
-                explanation: 'The first web browser was called WorldWideWeb and was also created by Tim Berners-Lee.'
+                text: 'Quelle était la fonction principale du premier navigateur web "WorldWideWeb" ?',
+                options: ['Seulement lire des pages', 'Lire ET éditer des pages', 'Envoyer des emails', 'Jouer des vidéos'],
+                correctIndex: 1,
+                explanation: 'Contrairement aux navigateurs modernes, le premier navigateur permettait à la fois de lire et d\'éditer des pages web !'
+            },
+            {
+                id: 'tbl-3',
+                text: 'Quelle technologie Tim Berners-Lee n\'a-t-il PAS inventée ?',
+                options: ['HTTP', 'HTML', 'URL', 'JavaScript'],
+                correctIndex: 3,
+                explanation: 'JavaScript a été créé par Brendan Eich en 1995, tandis que Tim Berners-Lee a inventé HTTP, HTML et le système d\'URL.'
             }
         ]
     },
@@ -28,22 +35,29 @@ const rounds = [
         video: {
             src: '/assets/videos/ray-tomlinson.mp4',
             title: 'Ray Tomlinson',
-            summary: 'The inventor of email.'
+            summary: 'L\'inventeur de l\'email.'
         },
         questions: [
             {
                 id: 'rt-1',
-                text: 'What is Ray Tomlinson known for?',
-                options: ['Inventing the @ symbol in email addresses', 'Inventing the first computer mouse', 'Creating the first social media platform', 'Developing the first video game'],
-                correctIndex: 0,
-                explanation: 'Ray Tomlinson is credited with inventing the email system and choosing the @ symbol to separate the user name from the host name.'
+                text: 'Pourquoi Ray Tomlinson a-t-il choisi le symbole @ pour les adresses email ?',
+                options: ['C\'était joli', 'Il n\'était pas utilisé dans les noms', 'C\'était à la mode', 'Par hasard'],
+                correctIndex: 1,
+                explanation: 'Ray Tomlinson a choisi @ car ce symbole n\'apparaissait jamais dans les noms de personnes, évitant ainsi toute confusion.'
             },
             {
                 id: 'rt-2',
-                text: 'In which decade was the first email sent?',
-                options: ['1960s', '1970s', '1980s', '1990s'],
+                text: 'Quel était le contenu du premier email envoyé par Ray Tomlinson ?',
+                options: ['Hello World', 'Test', 'QWERTYUIOP (touches du clavier)', 'Il ne s\'en souvient pas'],
+                correctIndex: 3,
+                explanation: 'Ray Tomlinson lui-même a déclaré avoir oublié le contenu exact du premier email, probablement quelque chose comme "QWERTYUIOP".'
+            },
+            {
+                id: 'rt-3',
+                text: 'Sur quel réseau le premier email a-t-il été envoyé ?',
+                options: ['Internet', 'ARPANET', 'Ethernet', 'WiFi'],
                 correctIndex: 1,
-                explanation: 'The first email was sent by Ray Tomlinson in 1971.'
+                explanation: 'Le premier email a été envoyé sur ARPANET en 1971, l\'ancêtre de l\'Internet moderne.'
             }
         ]
     },
@@ -52,22 +66,29 @@ const rounds = [
         video: {
             src: '/assets/videos/vitalik-buterin.mp4',
             title: 'Vitalik Buterin',
-            summary: 'The co-founder of Ethereum.'
+            summary: 'Le co-fondateur d\'Ethereum.'
         },
         questions: [
             {
                 id: 'vb-1',
-                text: 'Vitalik Buterin is the co-founder of which blockchain platform?',
-                options: ['Bitcoin', 'Ripple', 'Ethereum', 'Litecoin'],
-                correctIndex: 2,
-                explanation: 'Vitalik Buterin is one of the co-founders of Ethereum, a decentralized platform that runs smart contracts.'
+                text: 'Quel âge avait Vitalik Buterin lorsqu\'il a co-fondé Ethereum ?',
+                options: ['17 ans', '19 ans', '21 ans', '25 ans'],
+                correctIndex: 1,
+                explanation: 'Vitalik Buterin n\'avait que 19 ans en 2013 lorsqu\'il a proposé Ethereum. Un vrai prodige !'
             },
             {
                 id: 'vb-2',
-                text: 'What is the native cryptocurrency of the Ethereum platform?',
-                options: ['BTC', 'XRP', 'ETH', 'LTC'],
-                correctIndex: 2,
-                explanation: 'The native cryptocurrency of the Ethereum platform is Ether (ETH).'
+                text: 'Quelle est la principale différence entre Bitcoin et Ethereum ?',
+                options: ['Bitcoin est plus rapide', 'Ethereum permet les smart contracts', 'Bitcoin a plus de cryptomonnaie', 'Il n\'y a aucune différence'],
+                correctIndex: 1,
+                explanation: 'Contrairement à Bitcoin qui est principalement une monnaie, Ethereum est une plateforme permettant d\'exécuter des smart contracts (contrats intelligents).'
+            },
+            {
+                id: 'vb-3',
+                text: 'Quel problème Vitalik voulait-il résoudre en créant Ethereum ?',
+                options: ['Rendre Bitcoin plus rapide', 'Créer une plateforme programmable décentralisée', 'Remplacer les banques', 'Miner plus de crypto'],
+                correctIndex: 1,
+                explanation: 'Vitalik a créé Ethereum pour permettre aux développeurs de créer des applications décentralisées, pas seulement des transactions financières.'
             }
         ]
     },
@@ -76,22 +97,29 @@ const rounds = [
         video: {
             src: '/assets/videos/bush.mp4',
             title: 'George W. Bush',
-            summary: 'A former US President.'
+            summary: 'Ancien président des États-Unis.'
         },
         questions: [
             {
                 id: 'gwb-1',
-                text: 'George W. Bush was the...?',
-                options: ['42nd US President', '43rd US President', '44th US President', '45th US President'],
+                text: 'Quel lien George W. Bush a-t-il avec l\'histoire du web ?',
+                options: ['Il a inventé Google', 'Il est devenu un mème Internet', 'Il a créé Facebook', 'Aucun lien'],
                 correctIndex: 1,
-                explanation: 'George W. Bush was the 43rd President of the United States, serving from 2001 to 2009.'
+                explanation: 'George W. Bush est devenu célèbre sur Internet pour ses gaffes et maladresses, donnant naissance à de nombreux mèmes.'
             },
             {
                 id: 'gwb-2',
-                text: 'Which major event occurred during George W. Bush\'s presidency?',
-                options: ['The fall of the Berlin Wall', 'The 9/11 terrorist attacks', 'The beginning of the Vietnam War', 'The signing of the Declaration of Independence'],
-                correctIndex: 1,
-                explanation: 'The September 11th terrorist attacks occurred on September 11, 2001, during George W. Bush\'s first term as president.'
+                text: 'Quelle célèbre phrase maladroite Bush a-t-il prononcée ?',
+                options: ['"Fool me once..."', '"I have a dream"', '"Yes we can"', '"Make America great"'],
+                correctIndex: 0,
+                explanation: 'Sa célèbre gaffe : "Fool me once, shame on... shame on you. Fool me... you can\'t get fooled again!" est devenue virale.'
+            },
+            {
+                id: 'gwb-3',
+                text: 'Pendant quel mandat de Bush les réseaux sociaux ont-ils explosé ?',
+                options: ['Avant sa présidence', 'Premier mandat (2001-2005)', 'Second mandat (2005-2009)', 'Après sa présidence'],
+                correctIndex: 2,
+                explanation: 'Facebook (2004), YouTube (2005) et Twitter (2006) ont tous été lancés pendant la présidence de Bush, contribuant à la viralité de ses gaffes.'
             }
         ]
     }

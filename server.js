@@ -59,10 +59,13 @@ function getLocalIPv4Addresses() {
 }
 
 const server = http.createServer((req, res) => {
-    // Add error handler to each request socket
-    req.socket.on('error', (err) => {
-        console.error('HTTP socket error:', err.code || err.message);
-    });
+    // Add error handler to each request socket (only if not already added)
+    if (!req.socket._hasErrorHandler) {
+        req.socket.on('error', (err) => {
+            console.error('HTTP socket error:', err.code || err.message);
+        });
+        req.socket._hasErrorHandler = true;
+    }
     
     if (req.url === '/api/server-info') {
         res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -89,10 +92,19 @@ server.on('websocket-message', ({ socket, event, data }) => {
     const gameState = game.getGameState();
 
     if (event === 'host:createGame') {
-        if (!gameState.hostId || socket.id === gameState.hostId) {
-            const { code, rounds } = game.createGame(socket.id);
-            ws.sendWebSocketMessage(socket, 'host:gameCreated', { code, rounds });
+        // If there's an existing host, close its connection to force cleanup
+        if (gameState.hostId && gameState.hostId !== socket.id) {
+            const oldHostSocket = ws.clients.get(gameState.hostId);
+            if (oldHostSocket) {
+                console.log(`🔄 Closing old host connection: ${gameState.hostId}`);
+                oldHostSocket.destroy();
+                ws.clients.delete(gameState.hostId);
+            }
         }
+        
+        const { code, rounds } = game.createGame(socket.id);
+        console.log(`✅ Game created with code: ${code} for host: ${socket.id}`);
+        ws.sendWebSocketMessage(socket, 'host:gameCreated', { code, rounds });
     } else if (event === 'host:startGame') {
         if (socket.id === gameState.hostId) {
             game.startGame();
@@ -128,8 +140,10 @@ server.on('websocket-message', ({ socket, event, data }) => {
 
 server.on('websocket-close', (socketId) => {
     const gameState = game.getGameState();
+    console.log(`WebSocket closed: ${socketId}, current host: ${gameState.hostId}`);
     if (socketId === gameState.hostId) {
-        game.createGame(null); // Reset game
+        // Clear the host but keep the game state
+        game.clearHost();
         ws.broadcast('host:disconnected');
     } else {
         const playersList = game.removePlayer(socketId);
