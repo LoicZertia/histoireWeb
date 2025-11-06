@@ -162,22 +162,25 @@ function showWaitingState(message = 'En attente du prochain round...') {
 function showVideoState(payload) {
   gameHeading.textContent = `Vidéo : ${payload.inventor}`;
   questionArea.className = 'question-area video';
-  
-  const videoContainer = document.createElement('div');
-  videoContainer.className = 'video-container';
-  
-  const video = document.createElement('video');
-  video.src = payload.video.src;
-  video.setAttribute('controls', 'true');
-  video.setAttribute('playsinline', 'true');
-  video.setAttribute('autoplay', 'true');
-  
-  const summary = document.createElement('p');
-  summary.textContent = payload.video.summary || '';
-  
-  videoContainer.append(video, summary);
   questionArea.innerHTML = '';
-  questionArea.appendChild(videoContainer);
+  
+  const watchScreen = document.createElement('div');
+  watchScreen.className = 'watch-screen-message';
+  
+  const icon = document.createElement('div');
+  icon.className = 'screen-icon';
+  icon.innerHTML = '📺';
+  
+  const title = document.createElement('h2');
+  title.textContent = 'Regardez l\'écran !';
+  
+  const subtitle = document.createElement('p');
+  subtitle.textContent = `Visionnez la vidéo sur ${payload.inventor}`;
+  
+  watchScreen.appendChild(icon);
+  watchScreen.appendChild(title);
+  watchScreen.appendChild(subtitle);
+  questionArea.appendChild(watchScreen);
   
   clearTimer();
 }

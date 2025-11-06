@@ -803,6 +803,48 @@ button.ghost:hover:not(:disabled) {
   margin-top: 10px;
 }
 
+/* ========== MESSAGE "REGARDEZ L'ÉCRAN" ========== */
+.watch-screen-message {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+  min-height: 300px;
+  animation: fadeIn 0.5s ease;
+}
+
+.watch-screen-message .screen-icon {
+  font-size: 120px;
+  margin-bottom: 30px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.watch-screen-message h2 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 42px;
+  color: var(--kahoot-purple);
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.watch-screen-message p {
+  font-size: 20px;
+  color: #666;
+  font-weight: 600;
+  margin: 0;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 1200px) {
   .host-shell {
