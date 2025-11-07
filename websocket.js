@@ -1,5 +1,6 @@
 const crypto = require('crypto');
 const clients = new Map();
+const PING_INTERVAL = 30000; // Ping toutes les 30 secondes (bien avant le timeout Heroku de 55s)
 
 function parseWebSocketFrame(buffer) {
     const firstByte = buffer.readUInt8(0);
@@ -7,6 +8,12 @@ function parseWebSocketFrame(buffer) {
 
     if (opCode === 0x8) { // Close frame
         return null;
+    }
+    if (opCode === 0x9) { // Ping frame - répondre avec Pong
+        return { type: 'ping' };
+    }
+    if (opCode === 0xA) { // Pong frame
+        return { type: 'pong' };
     }
     if (opCode !== 0x1) { // Text frame
         return;
@@ -38,6 +45,34 @@ function parseWebSocketFrame(buffer) {
     }
 
     return payload.toString('utf8');
+}
+
+function sendPing(socket) {
+    if (!socket || socket.destroyed || !socket.writable) {
+        return;
+    }
+    
+    try {
+        // Ping frame: FIN + opcode 0x9, no payload
+        const pingFrame = Buffer.from([0x89, 0x00]);
+        socket.write(pingFrame);
+    } catch (error) {
+        console.error('Error sending ping:', error.code || error.message);
+    }
+}
+
+function sendPong(socket) {
+    if (!socket || socket.destroyed || !socket.writable) {
+        return;
+    }
+    
+    try {
+        // Pong frame: FIN + opcode 0xA, no payload
+        const pongFrame = Buffer.from([0x8A, 0x00]);
+        socket.write(pongFrame);
+    } catch (error) {
+        console.error('Error sending pong:', error.code || error.message);
+    }
 }
 
 function sendWebSocketMessage(socket, event, data) {
@@ -97,10 +132,31 @@ function createWebSocketServer(server) {
 
         clients.set(id, socket);
         socket.id = id;
+        socket.isAlive = true;
+
+        // Démarrer le ping interval pour ce socket
+        const pingInterval = setInterval(() => {
+            if (socket.destroyed || !socket.writable) {
+                clearInterval(pingInterval);
+                return;
+            }
+            
+            if (!socket.isAlive) {
+                // Le client n'a pas répondu au dernier ping, fermer la connexion
+                console.log(`⚠️ Client ${socket.id} non réactif, fermeture...`);
+                clearInterval(pingInterval);
+                socket.destroy();
+                return;
+            }
+            
+            socket.isAlive = false;
+            sendPing(socket);
+        }, PING_INTERVAL);
 
         // Add error handler FIRST to catch any errors before other handlers
         socket.on('error', (error) => {
             console.error('WebSocket error:', error.code || error.message);
+            clearInterval(pingInterval);
             try {
                 clients.delete(socket.id);
                 server.emit('websocket-close', socket.id);
@@ -113,6 +169,18 @@ function createWebSocketServer(server) {
             try {
                 const message = parseWebSocketFrame(buffer);
                 if (message) {
+                    // Gérer les frames ping/pong
+                    if (message.type === 'ping') {
+                        sendPong(socket);
+                        socket.isAlive = true;
+                        return;
+                    }
+                    if (message.type === 'pong') {
+                        socket.isAlive = true;
+                        return;
+                    }
+                    
+                    // Gérer les messages normaux
                     try {
                         const { event, data } = JSON.parse(message);
                         server.emit('websocket-message', { socket, event, data });
@@ -126,6 +194,7 @@ function createWebSocketServer(server) {
         });
 
         socket.on('close', () => {
+            clearInterval(pingInterval);
             try {
                 clients.delete(socket.id);
                 server.emit('websocket-close', socket.id);

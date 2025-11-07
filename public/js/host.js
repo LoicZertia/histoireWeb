@@ -47,10 +47,33 @@ ws.onmessage = (event) => {
   }
 };
 
+ws.onerror = (error) => {
+  console.error('WebSocket error:', error);
+};
+
 ws.onclose = () => {
   console.log('Disconnected from WebSocket server');
   socket.emit('disconnect');
+  // Afficher un message à l'utilisateur
+  showConnectionLost();
 };
+
+function showConnectionLost() {
+  const existingWarning = document.querySelector('.connection-warning');
+  if (!existingWarning) {
+    const warning = document.createElement('div');
+    warning.className = 'connection-warning';
+    warning.innerHTML = `
+      <div style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); 
+                  background: #e74c3c; color: white; padding: 15px 30px; 
+                  border-radius: 8px; z-index: 10000; font-size: 18px; font-weight: bold;
+                  box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+        ⚠️ Connexion perdue - Rechargez la page
+      </div>
+    `;
+    document.body.appendChild(warning);
+  }
+}
 
 function emitToServer(eventName, data) {
     if (ws.readyState === WebSocket.OPEN) {
