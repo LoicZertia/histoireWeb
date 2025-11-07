@@ -322,25 +322,40 @@ function showVideoStage(payload) {
   state.currentPhase = "video";
   state.roundIndex = payload.roundIndex;
   state.questionIndex = -1;
-  phaseTitleEl.textContent = payload.video.title || `Video : ${payload.inventor}`;
+  phaseTitleEl.textContent = `Vidéo : ${payload.inventor}`;
   const totalRounds = state.rounds.length || "?";
-  setRoundProgress(`Manche ${payload.roundIndex + 1}/${totalRounds} - Video`);
+  setRoundProgress(`Manche ${payload.roundIndex + 1}/${totalRounds} - Vidéo`);
   clearTimer();
   nextPhaseBtn.disabled = false;
-  nextPhaseBtn.textContent = "Questions";
+  nextPhaseBtn.textContent = "Passer au quiz ➔";
   startGameBtn.disabled = true;
 
   const container = document.createElement("div");
-  container.className = "stage-video";
-  const video = document.createElement("video");
-  video.src = payload.video.src;
-  video.setAttribute("controls", "true");
-  video.setAttribute("playsinline", "true");
-
+  container.className = "stage-video-manual";
+  
+  const icon = document.createElement("div");
+  icon.className = "video-icon";
+  icon.innerHTML = "🎬";
+  
+  const title = document.createElement("h2");
+  title.textContent = `Visionnez la vidéo : ${payload.inventor}`;
+  
+  const instruction = document.createElement("p");
+  instruction.className = "video-instruction";
+  instruction.innerHTML = `Ouvrez le fichier <strong>${payload.video.src.split('/').pop()}</strong> sur votre ordinateur<br>et lancez la vidéo manuellement.`;
+  
   const summary = document.createElement("p");
+  summary.className = "video-summary";
   summary.textContent = payload.video.summary;
+  
+  const continueBtn = document.createElement("button");
+  continueBtn.className = "primary big-btn";
+  continueBtn.textContent = "Passer aux questions ➔";
+  continueBtn.addEventListener("click", () => {
+    emitToServer("host:nextPhase");
+  });
 
-  container.append(video, summary);
+  container.append(icon, title, instruction, summary, continueBtn);
   setStageContent(container, { full: true });
 }
 
@@ -490,82 +505,18 @@ function showFinishedStage(payload) {
   renderLeaderboard(payload.leaderboard || []);
 }
 
-// Preload videos function - Progressive loading to avoid Heroku timeout
+// Preload videos function - DISABLED (videos played manually outside app)
 async function preloadVideos() {
-  const videoUrls = [
-    '/assets/videos/tim-berners-lee.mp4',
-    '/assets/videos/ray-tomlinson.mp4',
-    '/assets/videos/vitalik-buterin.mp4',
-    '/assets/videos/bush.mp4'
-  ];
+  // No video preloading needed - videos are played manually
+  state.videosLoaded = true;
   
-  const totalVideos = videoUrls.length;
-  let loadedVideos = 0;
-  
-  // Hide loading overlay immediately to allow game setup
+  // Hide loading overlay immediately
   setTimeout(() => {
     loadingOverlay.classList.add('loaded');
     setTimeout(() => {
       loadingOverlay.style.display = 'none';
     }, 500);
   }, 300);
-  
-  // Show preload status in control bar
-  if (videoPreloadStatusEl) {
-    videoPreloadStatusEl.classList.remove('hidden');
-    videoPreloadStatusEl.textContent = `📥 Chargement vidéos 0/${totalVideos}`;
-  }
-  
-  // Load videos one by one in background (avoids Heroku 30s timeout)
-  for (const url of videoUrls) {
-    try {
-      await new Promise((resolve, reject) => {
-        const video = document.createElement('video');
-        video.preload = 'auto';
-        
-        // Timeout après 25 secondes pour éviter le timeout Heroku
-        const timeout = setTimeout(() => {
-          console.warn(`Video preload timeout: ${url}`);
-          resolve();
-        }, 25000);
-        
-        video.addEventListener('canplaythrough', () => {
-          clearTimeout(timeout);
-          loadedVideos++;
-          if (videoPreloadStatusEl) {
-            videoPreloadStatusEl.textContent = `📥 Chargement vidéos ${loadedVideos}/${totalVideos}`;
-          }
-          console.log(`Video loaded: ${url} (${loadedVideos}/${totalVideos})`);
-          resolve();
-        });
-        
-        video.addEventListener('error', () => {
-          clearTimeout(timeout);
-          console.error(`Failed to load video: ${url}`);
-          loadedVideos++;
-          if (videoPreloadStatusEl) {
-            videoPreloadStatusEl.textContent = `📥 Chargement vidéos ${loadedVideos}/${totalVideos}`;
-          }
-          resolve(); // Continue even if one video fails
-        });
-        
-        video.src = url;
-        video.load();
-      });
-    } catch (error) {
-      console.error('Error preloading video:', error);
-    }
-  }
-  
-  // Mark as loaded when all done
-  state.videosLoaded = true;
-  if (videoPreloadStatusEl) {
-    videoPreloadStatusEl.textContent = `✅ Vidéos chargées`;
-    setTimeout(() => {
-      videoPreloadStatusEl.classList.add('hidden');
-    }, 3000);
-  }
-  console.log(`✅ All videos preloaded (${loadedVideos}/${totalVideos})`);
 }
 
 // Start preloading when page loads

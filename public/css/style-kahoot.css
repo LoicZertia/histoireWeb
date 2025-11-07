@@ -302,7 +302,53 @@ button.ghost:hover:not(:disabled) {
   line-height: 1.6;
 }
 
-/* ========== VIDEO ========== */
+/* ========== VIDEO (Manual mode) ========== */
+.stage-video-manual {
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+  padding: 40px;
+}
+
+.stage-video-manual .video-icon {
+  font-size: 120px;
+  margin-bottom: 30px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.stage-video-manual h2 {
+  font-family: 'Baloo 2', cursive;
+  font-size: 42px;
+  color: var(--kahoot-purple);
+  margin-bottom: 20px;
+}
+
+.stage-video-manual .video-instruction {
+  font-size: 20px;
+  color: #666;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.stage-video-manual .video-instruction strong {
+  color: var(--kahoot-blue);
+  font-weight: 700;
+}
+
+.stage-video-manual .video-summary {
+  font-size: 16px;
+  color: #999;
+  margin-bottom: 40px;
+  font-style: italic;
+}
+
+.stage-video-manual .big-btn {
+  font-size: 24px;
+  padding: 20px 50px;
+  margin-top: 20px;
+}
+
+/* OLD video player styles - UNUSED */
 .stage-video {
   width: 100%;
   text-align: center;
