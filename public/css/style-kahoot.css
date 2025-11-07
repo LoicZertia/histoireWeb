@@ -259,6 +259,21 @@ button.ghost:hover:not(:disabled) {
   color: #666;
 }
 
+.video-preload-status {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--kahoot-blue);
+  padding: 8px 16px;
+  background: rgba(19, 104, 206, 0.1);
+  border-radius: 20px;
+  margin-left: 10px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.video-preload-status.hidden {
+  display: none;
+}
+
 /* ========== ZONE DE JEU ========== */
 .stage-body {
   flex: 1;

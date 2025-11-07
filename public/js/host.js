@@ -75,6 +75,7 @@ const phaseTitleEl = document.getElementById("phase-title");
 const stageBodyEl = document.getElementById("stage-body");
 const timerDisplayEl = document.getElementById("timer-display");
 const roundProgressEl = document.getElementById("round-progress");
+const videoPreloadStatusEl = document.getElementById("video-preload-status");
 
 const playerListEl = document.getElementById("player-list");
 const playerCountEl = document.getElementById("player-count");
@@ -489,24 +490,8 @@ function showFinishedStage(payload) {
   renderLeaderboard(payload.leaderboard || []);
 }
 
-// Preload videos function
+// Preload videos function - Progressive loading to avoid Heroku timeout
 async function preloadVideos() {
-  // DISABLED: Videos are too large for Heroku (90+ MB each)
-  // They will be loaded on-demand during the game
-  
-  // Mark as loaded immediately
-  state.videosLoaded = true;
-  loadingStatus.textContent = 'Prêt !';
-  
-  // Hide loading overlay
-  setTimeout(() => {
-    loadingOverlay.classList.add('loaded');
-    setTimeout(() => {
-      loadingOverlay.style.display = 'none';
-    }, 500);
-  }, 300);
-  
-  /* Original preloading code - DISABLED
   const videoUrls = [
     '/assets/videos/tim-berners-lee.mp4',
     '/assets/videos/ray-tomlinson.mp4',
@@ -517,47 +502,70 @@ async function preloadVideos() {
   const totalVideos = videoUrls.length;
   let loadedVideos = 0;
   
-  const promises = videoUrls.map((url) => {
-    return new Promise((resolve, reject) => {
-      const video = document.createElement('video');
-      video.preload = 'auto';
-      
-      video.addEventListener('canplaythrough', () => {
-        loadedVideos++;
-        const progress = Math.round((loadedVideos / totalVideos) * 100);
-        progressFill.style.width = `${progress}%`;
-        loadingStatus.textContent = `Chargement... ${progress}%`;
-        resolve();
-      });
-      
-      video.addEventListener('error', () => {
-        console.error(`Failed to load video: ${url}`);
-        loadedVideos++;
-        const progress = Math.round((loadedVideos / totalVideos) * 100);
-        progressFill.style.width = `${progress}%`;
-        loadingStatus.textContent = `Chargement... ${progress}%`;
-        resolve(); // Continue even if one video fails
-      });
-      
-      video.src = url;
-      video.load();
-    });
-  });
-  
-  await Promise.all(promises);
-  
-  // Mark as loaded
-  state.videosLoaded = true;
-  loadingStatus.textContent = 'Prêt !';
-  
-  // Hide loading overlay
+  // Hide loading overlay immediately to allow game setup
   setTimeout(() => {
     loadingOverlay.classList.add('loaded');
     setTimeout(() => {
       loadingOverlay.style.display = 'none';
     }, 500);
   }, 300);
-  */
+  
+  // Show preload status in control bar
+  if (videoPreloadStatusEl) {
+    videoPreloadStatusEl.classList.remove('hidden');
+    videoPreloadStatusEl.textContent = `📥 Chargement vidéos 0/${totalVideos}`;
+  }
+  
+  // Load videos one by one in background (avoids Heroku 30s timeout)
+  for (const url of videoUrls) {
+    try {
+      await new Promise((resolve, reject) => {
+        const video = document.createElement('video');
+        video.preload = 'auto';
+        
+        // Timeout après 25 secondes pour éviter le timeout Heroku
+        const timeout = setTimeout(() => {
+          console.warn(`Video preload timeout: ${url}`);
+          resolve();
+        }, 25000);
+        
+        video.addEventListener('canplaythrough', () => {
+          clearTimeout(timeout);
+          loadedVideos++;
+          if (videoPreloadStatusEl) {
+            videoPreloadStatusEl.textContent = `📥 Chargement vidéos ${loadedVideos}/${totalVideos}`;
+          }
+          console.log(`Video loaded: ${url} (${loadedVideos}/${totalVideos})`);
+          resolve();
+        });
+        
+        video.addEventListener('error', () => {
+          clearTimeout(timeout);
+          console.error(`Failed to load video: ${url}`);
+          loadedVideos++;
+          if (videoPreloadStatusEl) {
+            videoPreloadStatusEl.textContent = `📥 Chargement vidéos ${loadedVideos}/${totalVideos}`;
+          }
+          resolve(); // Continue even if one video fails
+        });
+        
+        video.src = url;
+        video.load();
+      });
+    } catch (error) {
+      console.error('Error preloading video:', error);
+    }
+  }
+  
+  // Mark as loaded when all done
+  state.videosLoaded = true;
+  if (videoPreloadStatusEl) {
+    videoPreloadStatusEl.textContent = `✅ Vidéos chargées`;
+    setTimeout(() => {
+      videoPreloadStatusEl.classList.add('hidden');
+    }, 3000);
+  }
+  console.log(`✅ All videos preloaded (${loadedVideos}/${totalVideos})`);
 }
 
 // Start preloading when page loads
