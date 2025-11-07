@@ -22,6 +22,19 @@ const socket = new EventEmitter();
 const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 const ws = new WebSocket(`${protocol}//${window.location.host}`);
 
+// Intro screen logic
+const introScreen = document.getElementById('intro-screen');
+const startIntroBtn = document.getElementById('start-intro-btn');
+
+if (startIntroBtn) {
+  startIntroBtn.addEventListener('click', () => {
+    introScreen.classList.add('hidden');
+    setTimeout(() => {
+      introScreen.style.display = 'none';
+    }, 500); // Match CSS animation duration
+  });
+}
+
 // Close WebSocket before page unload to prevent zombie connections
 window.addEventListener('beforeunload', () => {
   if (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING) {
