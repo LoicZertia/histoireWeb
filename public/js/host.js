@@ -491,6 +491,22 @@ function showFinishedStage(payload) {
 
 // Preload videos function
 async function preloadVideos() {
+  // DISABLED: Videos are too large for Heroku (90+ MB each)
+  // They will be loaded on-demand during the game
+  
+  // Mark as loaded immediately
+  state.videosLoaded = true;
+  loadingStatus.textContent = 'Prêt !';
+  
+  // Hide loading overlay
+  setTimeout(() => {
+    loadingOverlay.classList.add('loaded');
+    setTimeout(() => {
+      loadingOverlay.style.display = 'none';
+    }, 500);
+  }, 300);
+  
+  /* Original preloading code - DISABLED
   const videoUrls = [
     '/assets/videos/tim-berners-lee.mp4',
     '/assets/videos/ray-tomlinson.mp4',
@@ -541,6 +557,7 @@ async function preloadVideos() {
       loadingOverlay.style.display = 'none';
     }, 500);
   }, 300);
+  */
 }
 
 // Start preloading when page loads
